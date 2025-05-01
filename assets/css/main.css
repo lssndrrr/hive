@@ -1,2 +1,21 @@
-@import "tailwindcss";
-@import "@nuxt/ui";
+@import 'tailwindcss';
+@import '@nuxt/ui';
+@import './fonts.css';
+
+:root {
+    --ui-primary: #a96524;
+
+    --ui-secondary: #e9a319;
+
+    --ui-success: green;
+
+    --ui-info: #e8a318;
+
+    --ui-warning: #e8a318;
+
+    --ui-error: red;
+
+    --ui-bg: #fcefcb;
+
+    --ui-neutral: rgb(159, 106, 106);
+}
