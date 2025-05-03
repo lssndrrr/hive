@@ -212,19 +212,35 @@ const form = ref<RegisterPayload & { confirm_password: string }>({
 const show = ref(false)
 
 const signup = async () => {
-    if (form.value?.password !== form.value?.confirm_password) {
-        alert('Passwords do not match!')
-        return
-    }
     try {
         if (form.value) {
-            await userStore.register(form.value)
-            alert('Sign up successful!')
-            router.push('/login')
+            if (form.value?.password !== form.value?.confirm_password) {
+                // TODO: toast saying passwords do not match
+                return
+            }
+            const res = await userStore.register(form.value)
+
+            if (res.success) {
+                // TODO: toast saying res.message
+                router.push('/login')
+            } else {
+                // TODO: toast saying res.message and error_msg
+                const error_msg =
+                    res.error?.detail ??
+                    Object.values(res.error || {})
+                        .flat()
+                        .join('\n') ??
+                    'An unknown error occurred.'
+            }
         }
     } catch (err: any) {
-        alert('Sign up failed. Please try again.')
-        console.log(err)
+        console.error('Unexpected error during signup:', err)
+
+        if (err instanceof Error) {
+            alert(err.message)
+        } else {
+            alert('Something went wrong. Please try again.')
+        }
     }
 }
 </script>
