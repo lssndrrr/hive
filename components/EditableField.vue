@@ -53,18 +53,15 @@ const props = defineProps<{
     label: string
     type?: string
     modelValue: string
-    showEyeIcon?: boolean
 }>()
 
-// Emit
-const emit = defineEmits(['update:modelValue', 'toggle-password'])
+const emit = defineEmits(['update:modelValue', 'save'])
 
-// Local state
 const isEditing = ref(false)
 const editableValue = ref(props.modelValue)
 const inputType = ref(props.type || 'text')
 
-// Keep editableValue in sync if parent value changes
+// Sync with parent
 watch(
     () => props.modelValue,
     (newVal) => {
@@ -72,7 +69,6 @@ watch(
     }
 )
 
-// Actions
 function startEditing() {
     isEditing.value = true
 }
@@ -83,7 +79,8 @@ function cancel() {
 }
 
 function save() {
-    emit('update:modelValue', editableValue.value)
+    emit('update:modelValue', editableValue.value) // Sync with parent
+    emit('save') // Trigger save event in the parent
     isEditing.value = false
 }
 </script>
