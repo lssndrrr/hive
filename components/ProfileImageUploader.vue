@@ -19,17 +19,43 @@
                 </div>
             </div>
             <div class="camera-wrapper">
-                <UButton
-                    color="secondary"
-                    variant="solid"
-                    @click="fileInput?.click()"
-                    class="camera-icon"
-                >
-                    <UIcon
-                        name="i-heroicons-camera"
-                        class="w-4 h-4 text-white"
-                    />
-                </UButton>
+                <UModal>
+                    <UButton
+                        color="secondary"
+                        variant="solid"
+                        @click="fileInput?.click()"
+                        class="camera-icon"
+                    >
+                        <UIcon
+                            name="i-heroicons-camera"
+                            class="w-4 h-4 text-white"
+                        />
+                    </UButton>
+
+                    <template #content>
+                        <Placeholder class="h-48" />
+                        <div class="flex flex-column gap-4 justify-center">
+                            <UButton
+                                type="submit"
+                                color="secondary"
+                                size="xl"
+                                style="font-family: 'Nexa'; font-weight: 800"
+                                class="flex justify-center hover:bg-primary text-white"
+                            >
+                                Add Image
+                            </UButton>
+                            <UButton
+                                type="submit"
+                                color="error"
+                                size="xl"
+                                style="font-family: 'Nexa'; font-weight: 800"
+                                class="flex justify-center hover:bg-primary text-white"
+                            >
+                                Remove Image Image
+                            </UButton>
+                        </div>
+                    </template>
+                </UModal>
             </div>
         </div>
 
