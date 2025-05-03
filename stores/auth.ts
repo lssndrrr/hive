@@ -1,4 +1,3 @@
-// stores/userStore.ts
 import { defineStore } from 'pinia'
 import api from '~/api/api'
 import type { User, ApiResponse, ApiError } from '~/interfaces/common'
@@ -22,6 +21,7 @@ export const useUserStore = defineStore('user', {
                     credentials
                 )
                 if (res.data.data?.user) this.user = res.data.data?.user
+                console.log(this.user)
                 return res.data
             } catch (err: any) {
                 throw err.response?.data || err
