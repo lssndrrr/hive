@@ -1,6 +1,7 @@
 export interface ApiResponse<T> {
     data: T | null
-    error: string | null
+    error?: ApiError | null
+    message?: string
 }
 
 export interface ApiError {
