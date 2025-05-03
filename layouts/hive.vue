@@ -19,7 +19,7 @@
     <button
       @click="isHivePanelOpen = !isHivePanelOpen"
       :class="[
-        'fixed top-3 z-[60] p-1 bg-[#A86523] text-white rounded shadow transition-all duration-300 ease-in-out',
+        'fixed top-3 p-1 bg-[#A86523] text-white rounded shadow transition-all duration-300 ease-in-out',
         isHivePanelOpen ? 'left-58' : 'left-20' // Dynamic left position
       ]"
       title="Toggle Hive Panel"

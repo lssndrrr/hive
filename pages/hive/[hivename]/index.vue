@@ -39,7 +39,7 @@
                     icon="heroicons:plus-20-solid"
                     size="md"
                     class="text-[#A86523] hover:bg-[#E9A319] hover:text-white cursor:pointer"
-                    @click="showTaskDetails({ id: 'new', title: 'New Task' })"
+                    @click="handleAddTask()"
                   >
                     Add Task
                   </UButton>
@@ -100,7 +100,7 @@
       <MemberDetails v-model="isMemberDetailsOpen" v-if="isMemberDetailsOpen && selectedMember" :member="selectedMember" @close="isMemberDetailsOpen = false"></MemberDetails>
     </div>
     <div class="h-full overflow-hidden">
-      <TaskDetails v-model="isTaskDetailsOpen" v-if="isTaskDetailsOpen && selectedTask" :task="selectedTask" @close="isTaskDetailsOpen = false" @update-status="handleUpdateTaskStatus" @update-date="handleUpdateTaskDate" class="details-panel"></TaskDetails>
+      <TaskDetails  v-if="isTaskDetailsOpen && selectedTask" :task="selectedTask" @close="isTaskDetailsOpen = false" @update-status="handleUpdateTaskStatus" @update-date="handleUpdateTaskDate" class="details-panel"></TaskDetails>
     </div>
 
   </div>
@@ -108,7 +108,7 @@
   <!-- Add New Member Modal -->
   <div
     v-if="isAddMemberModalOpen"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 dark:bg-gray-800/75 p-4"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 p-4"
     @click.self="isAddMemberModalOpen = false" 
   >
     <UCard
@@ -133,172 +133,232 @@
       </template>
     </UCard>
   </div>
+
+  <div
+    v-if="isAddTaskModalOpen"
+    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 p-4"
+    @click.self="isAddTaskModalOpen = false" 
+  >
+    <UCard
+      class="w-full max-w-md bg-[#FCEFCB] text-[#A86523]"
+      @click.stop 
+      variant="soft"
+    >
+      <template #header>
+        <div class="flex justify-between items-center">
+          <h2 class="text-lg font-semibold text-[#A86523]">Add New Task</h2>
+        </div>
+      </template>
+
+      <div class="flex flex-col p-4 space-y-4">
+        <div>
+          <UInput 
+            v-model="newTask.title" 
+            placeholder="Enter task title" 
+            color="neutral" 
+            class="w-full" 
+          />
+        </div>
+
+        <div>
+          <UTextarea 
+            v-model="newTask.description" 
+            placeholder="Add details..." 
+            color="neutral" 
+            autoresize
+            class="w-full"
+          />
+        </div>
+
+        <div>
+          <USelectMenu
+            v-model="newTask.assignee"
+            :options="memberOptions"
+            option-attribute="name"
+            value-attribute="id"
+            placeholder="Select member"
+            searchable
+            color="neutral"
+            class="w-full"
+          >
+            <template>
+              <span v-if="newTask.assignee">{{ memberNameById(newTask.assignee.name) }}</span>
+              <span v-else class="text-gray-500 dark:text-gray-400">Select member</span>
+            </template>
+            <template #option="{ item }">
+              <span>{{ item.name }}</span>
+            </template>
+          </USelectMenu>
+        </div>
+
+        <div>
+          <UPopover :popper="{ placement: 'bottom-start' }">
+              <template #default="{ open }">
+                  <UButton
+                      color="neutral" variant="outline" icon="i-heroicons-calendar-days-20-solid" size="sm"
+                      class="text-[#A86523] border-[#A86523]/50 justify-start w-full"
+                      :label="newTask.date ? format(newTask.date, 'MMM dd, yyyy') : 'Select Due Date'"
+                  />
+              </template>
+              <template #panel="{ close }">
+                  <div class="p-2">
+                      <UCalendar v-model="newTask.date" @update:model-value="close()" />
+                      <div class="flex justify-end pt-2">
+                          <UButton label="Clear" variant="ghost" color="neutral" size="xs" @click="newTask.date = undefined; close()" />
+                      </div>
+                  </div>
+              </template>
+          </UPopover>
+        </div>
+      </div>
+
+      <template #footer>
+        <div class="flex justify-end space-x-2">
+          <UButton color="neutral" variant="ghost" class="text-[#A86523] hover:bg-transparent hover:text-white " @click="isAddTaskModalOpen = false">Cancel</UButton>
+          <UButton color="primary" variant="solid" class="text-white" @click="submitNewMember">Add Task</UButton>
+        </div>
+      </template>
+    </UCard>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import type { Member, Task } from '~/types';
-import type { TabsItem } from '@nuxt/ui'
+  import { ref, computed, onMounted, watch } from 'vue';
+  import { format } from 'date-fns';
+  import type { Hive, HiveMember } from '~/interfaces/hive';
+  import type { Task } from '~/interfaces/task';
+  import type { TabsItem } from '@nuxt/ui'
+  import { useHiveTaskStore } from '~/stores/task';
+  import { useHiveStore } from '~/stores/hive';
 
-const isTaskDetailsOpen = ref(false);
-const isMemberDetailsOpen = ref(false);
-const isAddMemberModalOpen = ref(false);
-const selectedTask = ref<Task | null>(null); 
-const selectedMember = ref<Member | null>(null); 
+  definePageMeta({
+    layout: 'hive'
+  });
+  
+  const route = useRoute();
+  const taskStore = useHiveTaskStore();
+  const hiveStore = useHiveStore();
 
-const items = ref<TabsItem[]>([
-  { label: 'Dashboard', icon: 'mdi:beehive-outline' },
-  { label: 'Members', icon: 'icon-park-solid:bee' },
-  { label: 'Tasks', icon: 'i-lucide-check-square' },
-]);
+  const currentHiveId = computed(() => {
+    const idParam = route.params.hivename || route.params.hiveId;
+    return idParam ? Number(idParam) : null;
+  });
+  
+  const isTaskDetailsOpen = ref(false);
+  const isMemberDetailsOpen = ref(false);
+  const isAddMemberModalOpen = ref(false);
+  const isAddTaskModalOpen = ref(false);
+  const selectedTask = ref<Task | null>(null); 
+  const selectedMember = ref<HiveMember | null>(null); 
+  interface MemberOption { id: number | string; name: string; }
+  const defaultNewTaskState = () => ({
+      title: '',
+      description: '',
+      assignee: undefined as (MemberOption | undefined), // Store assignee ID
+      date: undefined as (Date | undefined),
+  });
+  const newTask = ref(defaultNewTaskState());
 
-definePageMeta({
-  layout: 'hive'
-});
+  const items = ref<TabsItem[]>([
+    { label: 'Dashboard', icon: 'mdi:beehive-outline' },
+    { label: 'Members', icon: 'icon-park-solid:bee' },
+    { label: 'Tasks', icon: 'i-lucide-check-square' },
+  ]);
 
-const route = useRoute();
+  const allTasks = computed(() => {
+    return currentHiveId.value ? hiveStore.getTasksForHive(currentHiveId.value) : [];
+  });
 
-// --- Sample Data ---
-const todoTasks = ref([
-  { id: 't1', title: 'Design dashboard layout', date: '2025-11-17', hive: 'UI Team', assignee: { name: 'Alex', avatarUrl: null } },
-  { id: 't2', title: 'Implement Kanban components', date: '2025-11-18', hive: 'Dev Team', assignee: { name: 'Ben', avatarUrl: 'https://avatars.githubusercontent.com/u/739984?v=4' } },
-]);
-const inProgressTasks = ref([
-  { id: 't3', title: 'Set up Nuxt project', date: '2025-11-15', hive: 'Dev Team', assignee: { name: 'Caleb' } },
-]);
-const doneTasks = ref([
-   { id: 't4', title: 'Gather requirements', date: '2025-11-10', hive: 'Product', assignee: { name: 'Sarah' } },
-]);
+  const todoTasks = computed(() => allTasks.value.filter(t => t.status === 'TD'));
+  const inProgressTasks = computed(() => allTasks.value.filter(t => t.status === 'IP'));
+  const doneTasks = computed(() => allTasks.value.filter(t => t.status === 'D'));
+  const allHiveTasks = computed(() => allTasks.value); // For calendar
 
-const allHiveTasks = computed(() => {
-  return [...todoTasks.value, ...inProgressTasks.value, ...doneTasks.value];
-});
+  const hiveMembers = computed(() => {
+      return currentHiveId.value ? hiveStore.getMembers(currentHiveId.value) : [];
+  });
 
-const hiveMembers = ref([
-  { id: 'm1', name: 'Drone 1', avatarUrl: null },
-  { id: 'm2', name: 'Drone 2', avatarUrl: null },
-  { id: 'm3', name: 'Drone 3', avatarUrl: null },
-  { id: 'm4', name: 'Drone 4', avatarUrl: null },
-  { id: 'm5', name: 'Drone 5', avatarUrl: null },
-]);
-// --- End Sample Data ---
+  const currentHive = computed(() => {
+      return currentHiveId.value ? hiveStore.hives.find(h => h.id === currentHiveId.value) : null;
+  });
 
-function showTaskDetails(task: Task) {
-  selectedTask.value = task;
-  isTaskDetailsOpen.value = true;
-}
+  const memberOptions = computed(() => {
+      return hiveMembers.value.map(member => ({ id: member.id, name: member.username }));
+  });
 
-function showMemberDetails(member: any) {
-  selectedMember.value = member;
-  isMemberDetailsOpen.value = true;
-}
+  const memberNameById = (id: string | number | undefined) => {
+      if (!id) return '';
+      return hiveMembers.value.find(m => m.id === id)?.username || '';
+  };
 
-function handleAddNewMember() {
-  console.log('Handling add new member...');
-  isAddMemberModalOpen.value = true;
-}
-
-function submitNewMember() {
-  console.log('Submitting new member...');
-  // Add logic here to gather form data and send it to your backend/API
-  isAddMemberModalOpen.value = false;
-}
-
-function handleUpdateTaskStatus({ taskId, status }: { taskId: string | number, status: string }) {
-  console.log(`Updating task ${taskId} to status ${status}`);
-
-  // Find the task and move it between the status arrays
-  let taskToMove: Task | undefined;
-  let sourceArray: Ref<Task[]> | undefined;
-  let targetArray: Ref<Task[]> | undefined;
-
-  // Find in todoTasks
-  const todoIndex = todoTasks.value.findIndex(t => t.id === taskId);
-  if (todoIndex !== -1) {
-    taskToMove = todoTasks.value[todoIndex];
-    sourceArray = todoTasks;
-  }
-
-  // Find in inProgressTasks
-  if (!taskToMove) {
-    const progressIndex = inProgressTasks.value.findIndex(t => t.id === taskId);
-    if (progressIndex !== -1) {
-      taskToMove = inProgressTasks.value[progressIndex];
-      sourceArray = inProgressTasks;
+  onMounted(() => {
+    // Fetch hives if not already loaded (e.g., in layout)
+    if (hiveStore.hives.length === 0) {
+        hiveStore.fetchUserHives(); // Assumes this fetches member data too
     }
-  }
-
-  // Find in doneTasks
-  if (!taskToMove) {
-    const doneIndex = doneTasks.value.findIndex(t => t.id === taskId);
-    if (doneIndex !== -1) {
-      taskToMove = doneTasks.value[doneIndex];
-      sourceArray = doneTasks;
+    // Fetch tasks for the current hive
+    if (currentHiveId.value && !hiveStore.hiveTasks[currentHiveId.value]) {
+      hiveStore.fetchHiveTasks(currentHiveId.value);
     }
+  });
+
+  watch(currentHiveId, (newId, oldId) => {
+    if (newId && newId !== oldId && !hiveStore.hiveTasks[newId]) {
+        hiveStore.fetchHiveTasks(newId);
+    }
+  });
+
+
+  function showTaskDetails(task: Task) {
+    selectedTask.value = task;
+    isTaskDetailsOpen.value = true;
   }
 
-  // Determine target array based on new status
-  if (status === 'todo') targetArray = todoTasks;
-  else if (status === 'inprogress') targetArray = inProgressTasks;
-  else if (status === 'done') targetArray = doneTasks;
+  function showMemberDetails(member: any) {
+    selectedMember.value = member;
+    isMemberDetailsOpen.value = true;
+  }
 
-  // Move the task if found and source/target are valid
-  if (taskToMove && sourceArray && targetArray && sourceArray !== targetArray) {
-      // Update the task's status property (important!)
-      taskToMove.status = status;
+  function handleAddNewMember() {
+    console.log('Handling add new member...');
+    isAddMemberModalOpen.value = true;
+  }
 
-      // Remove from source array
-      sourceArray.value = sourceArray.value.filter(t => t.id !== taskId);
+  function handleAddTask() {
+    console.log('Handling add task...');
+    newTask.value = defaultNewTaskState(); // Reset form
+    selectedTask.value = null;
+    isAddTaskModalOpen.value = true;
+  }
 
-      // Add to target array
-      targetArray.value.push(taskToMove);
+  function submitNewMember() {
+    console.log('Submitting new member...');
+    // Add logic here to gather form data and send it to your backend/API
+    isAddMemberModalOpen.value = false;
+  }
 
-      // Optional: Update the selectedTask ref if it's the one being moved
-      // This ensures the details panel shows the updated status immediately
-      // if the status change didn't come from the panel itself (e.g., drag-and-drop)
-      if (selectedTask.value && selectedTask.value.id === taskId) {
-          selectedTask.value.status = status;
+  function handleUpdateTaskStatus({ taskId, status }: { taskId: string | number, status: string }) {
+    console.log(`TODO: Call store action to update task ${taskId} status to ${status}`);
+    // await hiveStore.updateTaskStatus(taskId, status); // Example store action call
+    // Note: The computed properties will update automatically when store state changes
+  }
+
+  function handleUpdateTaskTitle({ taskId, title }: { taskId: string | number, title: string }) {
+      console.log(`TODO: Call store action to update task ${taskId} title to: ${title}`);
+      // await hiveStore.updateTaskTitle(taskId, title); // Example store action call
+  }
+
+  function handleDeleteTask(taskId: string | number) {
+      console.log(`TODO: Call store action to delete task ${taskId}`);
+      // await hiveStore.deleteTask(taskId); // Example store action call
+      if (selectedTask.value?.id === taskId) {
+          isTaskDetailsOpen.value = false;
+          selectedTask.value = null;
       }
-
-  } else if (taskToMove) {
-      // Task found, but status didn't change column OR target is invalid
-      // Still update the status property on the original object
-       taskToMove.status = status;
-       // Force reactivity update if needed (usually not necessary with ref arrays)
-       // sourceArray.value = [...sourceArray.value];
-       if (selectedTask.value && selectedTask.value.id === taskId) {
-          selectedTask.value.status = status;
-       }
-  } else {
-      console.warn(`Task with ID ${taskId} not found in any list.`);
   }
-}
 
-function handleUpdateTaskDate({ taskId, date }: { taskId: string | number, date: string | null }) {
-    console.log(`Updating task ${taskId} date to: ${date}`);
-
-    // Find the task in one of the arrays
-    const taskRefs = [todoTasks, inProgressTasks, doneTasks];
-    let taskFound = false;
-    for (const taskRef of taskRefs) {
-        const task = taskRef.value.find(t => t.id === taskId);
-        if (task) {
-            task.date = date ?? undefined; // Update the date (use undefined if date is null)
-             // Update selected task if it's the one being edited
-            if (selectedTask.value?.id === taskId) {
-                selectedTask.value = { ...selectedTask.value, date: date ?? undefined };
-            }
-            taskFound = true;
-            break;
-        }
-    }
-
-    if (taskFound) {
-        // TODO: Add API call here to update the task date in your backend
-        // Example: await $fetch('/api/tasks/updateDate', { method: 'POST', body: { taskId, date } });
-        console.log('API call placeholder: Update date in backend');
-    } else {
-        console.warn(`Task with ID ${taskId} not found for date update.`);
-    }
-}
+  function handleUpdateTaskDate({ taskId, date }: { taskId: string | number, date: string | null }) {
+      console.log(`TODO: Call store action to update task ${taskId} date to: ${date}`);
+      // await hiveStore.updateTaskDate(taskId, date); // Example store action call
+  }
 </script>

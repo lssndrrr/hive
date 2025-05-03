@@ -51,7 +51,7 @@
                         class="bg-[#FAD59A] p-1 rounded text-[#A86523] truncate cursor-pointer hover:bg-[#E9A319]/50"
                         @click="emit('view-task-details', task)"
                     >
-                        {{ task.title }}
+                        {{ task.name }}
                     </div>
                 </div>
             </div>
@@ -74,7 +74,7 @@ import {
 } from 'date-fns';
 import type { PropType } from 'vue';
 // Assuming Task type is defined in ~/types or similar
-import type { Task } from '~/types';
+import type { Task } from '~/interfaces/task';
 
 const props = defineProps({
   tasks: {
@@ -102,15 +102,15 @@ const weekDates = computed(() => {
 const tasksByDate = computed(() => {
   const grouped: Record<string, Task[]> = {};
   props.tasks.forEach(task => {
-    if (task.date) {
+    if (task.due_date) {
       try {
-        const dateKey = format(new Date(task.date), 'yyyy-MM-dd');
+        const dateKey = format(new Date(task.due_date), 'yyyy-MM-dd');
         if (!grouped[dateKey]) {
           grouped[dateKey] = [];
         }
         grouped[dateKey].push(task);
       } catch (e) {
-          console.error("Error parsing task date:", task.date, e);
+          console.error("Error parsing task date:", task.due_date, e);
       }
     }
   });
