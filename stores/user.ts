@@ -92,10 +92,12 @@ export const useUserStore = defineStore('user', {
                 }
             }
         },
-        async fetchAccount(): Promise<ApiResponse<AuthResponse>> {
+        async fetchAccount(
+            username: string
+        ): Promise<ApiResponse<AuthResponse>> {
             try {
                 const res = await api.get<ApiResponse<AuthResponse>>(
-                    '/auth/me/'
+                    `/user/${username}`
                 )
 
                 if (res.data.data?.user) {
@@ -127,7 +129,7 @@ export const useUserStore = defineStore('user', {
         ): Promise<ApiResponse<AuthResponse>> {
             try {
                 const res = await api.patch<ApiResponse<AuthResponse>>(
-                    '/auth/me/',
+                    '/auth/',
                     data
                 )
 
