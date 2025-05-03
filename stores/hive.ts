@@ -16,7 +16,7 @@ export const useHiveStore = defineStore('hive', {
     actions: {
         async fetchUserHives() {
             this.isLoading = true
-            const res = await api.get<ApiResponse<HiveResponse[]>>('/hives/')
+            const res = await api.get<ApiResponse<HiveResponse[]>>('/hive/')
             if (res.data?.success) {
                 this.hives = res.data.data || []
             }
@@ -26,7 +26,7 @@ export const useHiveStore = defineStore('hive', {
         async fetchHiveTasks(hiveId: number) {
             this.isLoading = true
             const res = await api.get<ApiResponse<Task[]>>(
-                `/tasks/?hive=${hiveId}`
+                `/task/?hive=${hiveId}`
             )
             if (res.data?.success) {
                 this.hiveTasks[hiveId] = res.data.data || []
