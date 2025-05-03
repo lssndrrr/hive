@@ -21,7 +21,7 @@
                     </label>
                     <UInput
                         id="username"
-                        v-model="username"
+                        v-model="form.username"
                         type="text"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
@@ -40,7 +40,7 @@
                     >
                     <UInput
                         id="password"
-                        v-model="password"
+                        v-model="form.password"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
                         :style="{ color: 'black' }"
@@ -97,12 +97,20 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-
-const username = ref('')
+import type { LoginPayload } from '~/interfaces/auth'
 const show = ref(false)
-const password = ref('')
+const form = ref<LoginPayload>({
+    username: '',
+    password: '',
+})
+
+const userStore = useUserStore()
 
 const login = async () => {
-    console.log('Logging in with:', username.value, password.value)
+    try {
+        if (form.value) await userStore.login(form.value)
+    } catch (err: any) {
+        console.log(err)
+    }
 }
 </script>

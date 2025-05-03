@@ -21,7 +21,7 @@
                     </label>
                     <UInput
                         id="firstName"
-                        v-model="firstName"
+                        v-model="form.first_name"
                         type="text"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
@@ -41,7 +41,7 @@
                     </label>
                     <UInput
                         id="lastName"
-                        v-model="lastName"
+                        v-model="form.last_name"
                         type="text"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
@@ -61,7 +61,7 @@
                     </label>
                     <UInput
                         id="username"
-                        v-model="username"
+                        v-model="form.username"
                         type="text"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
@@ -81,7 +81,7 @@
                     </label>
                     <UInput
                         id="email"
-                        v-model="email"
+                        v-model="form.email"
                         type="email"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
@@ -100,7 +100,7 @@
                     >
                     <UInput
                         id="password"
-                        v-model="password"
+                        v-model="form.password"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
                         :style="{ color: 'black' }"
@@ -137,7 +137,7 @@
                     >
                     <UInput
                         id="confirm-password"
-                        v-model="confirmPassword"
+                        v-model="form.confirm_password"
                         variant="outline"
                         inputClass="bg-white text-black placeholder:text-gray-500"
                         :style="{ color: 'black' }"
@@ -194,22 +194,30 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import type { RegisterPayload } from '~/interfaces/auth'
 
-const email = ref('')
-const password = ref('')
-const confirmPassword = ref('')
+const userStore = useUserStore()
+
+const form = ref<RegisterPayload & { confirm_password: string }>({
+    first_name: '',
+    last_name: '',
+    username: '',
+    email: '',
+    password: '',
+    confirm_password: '',
+})
+
 const show = ref(false)
-const username = ref('')
-const firstName = ref('')
-const lastName = ref('')
 
 const signup = async () => {
-    if (password.value !== confirmPassword.value) {
+    if (form.value?.password !== form.value?.confirm_password) {
         alert('Passwords do not match!')
         return
     }
-
-    console.log('Signing up with:', email.value, password.value)
-    // Continue with your signup logic...
+    try {
+        if (form.value) await userStore.register(form.value)
+    } catch (err: any) {
+        console.log(err)
+    }
 }
 </script>
