@@ -6,10 +6,16 @@
                 v-for="member in members"
                 :key="member.id"
                 class="bg-[#FCEFCB] text-[#A86523] rounded-lg p-3 shadow hover:shadow-md transition-shadow duration-200 flex flex-col items-center"
+                @click="viewMember(member)"
             >
                 <div class="w-full aspect-square bg-[#FAD59A] rounded mb-2 flex items-center justify-center">
-                    <Icon v-if="!member.avatarUrl" name="i-heroicons-user" class="w-1/2 h-1/2 text-gray-400 dark:text-gray-500" />
-                    </div>
+                    <Icon 
+                        v-if="!member.avatarUrl" 
+                        name="i-heroicons-user" 
+                        class="w-1/2 h-1/2 
+                        text-gray-400 dark:text-gray-500" 
+                    />
+                </div>
                 <span class="text-sm font-medium truncate w-full text-center">{{ member.name }}</span>
             </div>
             
@@ -36,12 +42,18 @@ members: {
 }
 });
 
-const emit = defineEmits(['add-member-clicked']);
+const emit = defineEmits(['add-member-clicked', 'view-member-details']);
 
 function addMember() {
     console.log('Add member clicked');
     emit('add-member-clicked');
 }
+
+function viewMember(member: Member) {
+    console.log('View member details:', member); // Debug log
+    emit('view-member-details', member);
+}
+
 </script>
   
 

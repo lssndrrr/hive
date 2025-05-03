@@ -2,13 +2,13 @@
   <div 
     :class="[
       'grid gap-6 p-4 md:p-6 h-screen w-screen overflow-hidden',
-      isDetailsOpen ? 'grid-cols-[3fr_1fr]' : 'grid-cols-1' // Dynamic columns
+      isTaskDetailsOpen || isMemberDetailsOpen ? 'grid-cols-[3fr_1fr]' : 'grid-cols-1' // Dynamic columns
     ]"
   >
     <div 
         :class="[
           'flex flex-col space-y-8 overflow-y-auto main-content-scroll',
-          !isDetailsOpen ? 'col-span-full' : '' // Takes full width if details are closed
+          !isTaskDetailsOpen && !isMemberDetailsOpen ? 'col-span-full' : '' // Takes full width if details are closed
         ]"
     >
       <div>
@@ -67,26 +67,40 @@
           </div>
 
           <div v-else-if="item.label === 'Members'">
-            <h2 class="text-lg font-semibold text-[#A86523] mb-4">Hive Members</h2>
+            <div class="flex items-center space-x-2 my-4">
+              <Icon name="icon-park-solid:bee" class="h-6 w-6 text-[#A86523]" />
+              <h2 class="text-lg font-semibold text-[#A86523]">Hive Members</h2>
+            </div>
             <div class="p-8">
-              <MembersTab :members="hiveMembers" @add-member-clicked="handleAddNewMember"/>
+              <MembersTab :members="hiveMembers" @add-member-clicked="handleAddNewMember" @view-member-details="showMemberDetails"/>
             </div>
           </div>
 
           <div v-else-if="item.label === 'Tasks'">
-            <h2 class="text-lg font-semibold text-[#A86523] mb-4">Tasks Overview</h2>
-            <p class="text-[#A86523]">Placeholder content for a dedicated tasks view.</p>
+            <div class="flex items-center space-x-2 my-4">
+              <Icon name="solar:checklist-minimalistic-bold" class="h-6 w-6 text-[#A86523]" />
+              <h2 class="text-lg font-semibold text-[#A86523]">Hive Task Overview</h2>
+            </div>
+            <div class="p-8">
+              <TasksTab
+                :todo-tasks="todoTasks"
+                :in-progress-tasks="inProgressTasks"
+                :done-tasks="doneTasks"
+                @view-task-details="showTaskDetails"
+                @add-task="handleAddTask"
+              />
+            </div>
           </div>
           
         </template>
       </UTabs>
     </div>
 
-    <div>
-      <HiveSlideover @close="isDetailsOpen = false"></HiveSlideover>
+    <div class="h-full overflow-hidden">
+      <MemberDetails v-model="isMemberDetailsOpen" v-if="isMemberDetailsOpen && selectedMember" :member="selectedMember" @close="isMemberDetailsOpen = false"></MemberDetails>
     </div>
     <div class="h-full overflow-hidden">
-      <TaskDetails v-model="isDetailsOpen" v-if="isDetailsOpen && selectedTask" :task="selectedTask" @close="isDetailsOpen = false"></TaskDetails>
+      <TaskDetails v-model="isTaskDetailsOpen" v-if="isTaskDetailsOpen && selectedTask" :task="selectedTask" @close="isTaskDetailsOpen = false" @update-status="handleUpdateTaskStatus" @update-date="handleUpdateTaskDate" class="details-panel"></TaskDetails>
     </div>
 
   </div>
@@ -123,21 +137,23 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
-import type { Task } from '~/types';
+import type { Member, Task } from '~/types';
 import type { TabsItem } from '@nuxt/ui'
 
-const isDetailsOpen = ref(false);
+const isTaskDetailsOpen = ref(false);
+const isMemberDetailsOpen = ref(false);
 const isAddMemberModalOpen = ref(false);
 const selectedTask = ref<Task | null>(null); 
+const selectedMember = ref<Member | null>(null); 
 
 const items = ref<TabsItem[]>([
-  { label: 'Dashboard', icon: 'i-lucide-layout-dashboard' },
-  { label: 'Members', icon: 'i-lucide-users' },
+  { label: 'Dashboard', icon: 'mdi:beehive-outline' },
+  { label: 'Members', icon: 'icon-park-solid:bee' },
   { label: 'Tasks', icon: 'i-lucide-check-square' },
 ]);
 
 definePageMeta({
-  layout: 'user'
+  layout: 'hive'
 });
 
 const route = useRoute();
@@ -169,7 +185,12 @@ const hiveMembers = ref([
 
 function showTaskDetails(task: Task) {
   selectedTask.value = task;
-  isDetailsOpen.value = true;
+  isTaskDetailsOpen.value = true;
+}
+
+function showMemberDetails(member: any) {
+  selectedMember.value = member;
+  isMemberDetailsOpen.value = true;
 }
 
 function handleAddNewMember() {
@@ -183,15 +204,101 @@ function submitNewMember() {
   isAddMemberModalOpen.value = false;
 }
 
+function handleUpdateTaskStatus({ taskId, status }: { taskId: string | number, status: string }) {
+  console.log(`Updating task ${taskId} to status ${status}`);
+
+  // Find the task and move it between the status arrays
+  let taskToMove: Task | undefined;
+  let sourceArray: Ref<Task[]> | undefined;
+  let targetArray: Ref<Task[]> | undefined;
+
+  // Find in todoTasks
+  const todoIndex = todoTasks.value.findIndex(t => t.id === taskId);
+  if (todoIndex !== -1) {
+    taskToMove = todoTasks.value[todoIndex];
+    sourceArray = todoTasks;
+  }
+
+  // Find in inProgressTasks
+  if (!taskToMove) {
+    const progressIndex = inProgressTasks.value.findIndex(t => t.id === taskId);
+    if (progressIndex !== -1) {
+      taskToMove = inProgressTasks.value[progressIndex];
+      sourceArray = inProgressTasks;
+    }
+  }
+
+  // Find in doneTasks
+  if (!taskToMove) {
+    const doneIndex = doneTasks.value.findIndex(t => t.id === taskId);
+    if (doneIndex !== -1) {
+      taskToMove = doneTasks.value[doneIndex];
+      sourceArray = doneTasks;
+    }
+  }
+
+  // Determine target array based on new status
+  if (status === 'todo') targetArray = todoTasks;
+  else if (status === 'inprogress') targetArray = inProgressTasks;
+  else if (status === 'done') targetArray = doneTasks;
+
+  // Move the task if found and source/target are valid
+  if (taskToMove && sourceArray && targetArray && sourceArray !== targetArray) {
+      // Update the task's status property (important!)
+      taskToMove.status = status;
+
+      // Remove from source array
+      sourceArray.value = sourceArray.value.filter(t => t.id !== taskId);
+
+      // Add to target array
+      targetArray.value.push(taskToMove);
+
+      // Optional: Update the selectedTask ref if it's the one being moved
+      // This ensures the details panel shows the updated status immediately
+      // if the status change didn't come from the panel itself (e.g., drag-and-drop)
+      if (selectedTask.value && selectedTask.value.id === taskId) {
+          selectedTask.value.status = status;
+      }
+
+  } else if (taskToMove) {
+      // Task found, but status didn't change column OR target is invalid
+      // Still update the status property on the original object
+       taskToMove.status = status;
+       // Force reactivity update if needed (usually not necessary with ref arrays)
+       // sourceArray.value = [...sourceArray.value];
+       if (selectedTask.value && selectedTask.value.id === taskId) {
+          selectedTask.value.status = status;
+       }
+  } else {
+      console.warn(`Task with ID ${taskId} not found in any list.`);
+  }
+}
+
+function handleUpdateTaskDate({ taskId, date }: { taskId: string | number, date: string | null }) {
+    console.log(`Updating task ${taskId} date to: ${date}`);
+
+    // Find the task in one of the arrays
+    const taskRefs = [todoTasks, inProgressTasks, doneTasks];
+    let taskFound = false;
+    for (const taskRef of taskRefs) {
+        const task = taskRef.value.find(t => t.id === taskId);
+        if (task) {
+            task.date = date ?? undefined; // Update the date (use undefined if date is null)
+             // Update selected task if it's the one being edited
+            if (selectedTask.value?.id === taskId) {
+                selectedTask.value = { ...selectedTask.value, date: date ?? undefined };
+            }
+            taskFound = true;
+            break;
+        }
+    }
+
+    if (taskFound) {
+        // TODO: Add API call here to update the task date in your backend
+        // Example: await $fetch('/api/tasks/updateDate', { method: 'POST', body: { taskId, date } });
+        console.log('API call placeholder: Update date in backend');
+    } else {
+        console.warn(`Task with ID ${taskId} not found for date update.`);
+    }
+}
 </script>
-
-<style scoped>
-.main-content-scroll::-webkit-scrollbar {
-  display: none; 
-}
-.main-content-scroll {
-  scrollbar-width: none; 
-  -ms-overflow-style: none; 
-}
-
-</style>
