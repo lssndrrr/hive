@@ -100,7 +100,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { LoginPayload } from '~/interfaces/auth'
-// import { useUserStore } from '~/stores/auth'
+import { useUserStore } from '~/stores/auth'
 
 const show = ref(false)
 const form = ref<LoginPayload>({
@@ -108,29 +108,35 @@ const form = ref<LoginPayload>({
     password: '',
 })
 
-// const userStore = useUserStore()
+const userStore = useUserStore()
 const router = useRouter()
 
 const login = async () => {
     try {
         if (form.value) {
-            // await userStore.login(form.value)
+            const res = await userStore.login(form.value)
 
-            // console.log('User after login:', userStore.user)
-
-            // const username = userStore.user?.username
-            alert('Login successful!')
-
-            // if (username) {
-            //     router.push(`/u/${username}`)
-            // } else {
-            //     console.error('Username not found after login')
-            //     alert('Login succeeded, but username is missing.')
-            // }
+            if (res.success) {
+                // TODO: Add toast showing res.message
+                router.push(`${userStore.user?.username}`)
+            } else {
+                // TODO: Add toast showing res.message and error_msg
+                const error_msg =
+                    res.error?.detail ??
+                    Object.values(res.error || {})
+                        .flat()
+                        .join('\n') ??
+                    'An unknown error occurred.'
+            }
         }
     } catch (err: any) {
-        alert('Invalid username or password.')
-        console.log(err)
+        console.error('Unexpected error during login:', err)
+
+        if (err instanceof Error) {
+            alert(err.message)
+        } else {
+            alert('Something went wrong. Please try again.')
+        }
     }
 }
 </script>
