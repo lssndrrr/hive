@@ -12,19 +12,16 @@
                     alt="User Avatar"
                     size="lg"
                 />
-                <!-- <UAvatar
-                    :src="userStore.user?.avatarUrl || 'https://avatars.githubusercontent.com/u/739984?v=4'"
-                    :alt="userStore.user?.username || 'User'"
-                    size="md"
-                    class="ring-2 ring-white/20 hover:ring-white/40 transition-all"
-                /> -->
             </NuxtLink>
         </div>
 
         <nav class="flex flex-col justify-between h-full mb-4">
             <ul class="space-y-2">
                 <li class="flex justify-center">
-                    <NuxtLink to="/user/testuser" aria-label="Home">
+                    <NuxtLink
+                        :to="`/${userStore.user?.username}`"
+                        aria-label="Home"
+                    >
                         <Icon
                             name="material-symbols:home-rounded"
                             class="w-8 h-8"
@@ -41,21 +38,14 @@
                 </li>
             </ul>
 
-            <ul class="space-y-2">
-                <li class="flex justify-center">
-                    <NuxtLink to="/notifications" aria-label="Notifications">
-                        <Icon name="bxs:bell" class="w-8 h-8" />
-                    </NuxtLink>
-                </li>
-                <li class="flex justify-center">
-                    <NuxtLink to="/settings" aria-label="Settings/Logout">
-                        <Icon
-                            name="heroicons:arrow-left-on-rectangle"
-                            class="w-8 h-8"
-                        />
-                    </NuxtLink>
-                </li>
-            </ul>
+            <li class="flex justify-center">
+                <NuxtLink to="/settings" aria-label="Settings/Logout">
+                    <Icon
+                        name="heroicons:arrow-left-on-rectangle"
+                        class="w-8 h-8"
+                    />
+                </NuxtLink>
+            </li>
         </nav>
     </aside>
 </template>
