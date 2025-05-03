@@ -6,10 +6,31 @@
         style="font-family: 'Nexa'; font-weight: 800"
     >
         <ProfileImageUploader @update:image="userImage = $event" />
-        <EditableField v-model="username" label="Username" type="text" />
-        <EditableField v-model="firstName" label="First Name" type="text" />
-        <EditableField v-model="lastName" label="Last Name" type="text" />
-        <EditableField v-model="email" label="Email" type="email" />
+
+        <EditableField
+            v-model="username"
+            label="Username"
+            type="text"
+            @save="updateProfile"
+        />
+        <EditableField
+            v-model="firstName"
+            label="First Name"
+            type="text"
+            @save="updateProfile"
+        />
+        <EditableField
+            v-model="lastName"
+            label="Last Name"
+            type="text"
+            @save="updateProfile"
+        />
+        <EditableField
+            v-model="email"
+            label="Email"
+            type="email"
+            @save="updateProfile"
+        />
 
         <div class="flex flex-row justify-between w-[620px]">
             <UModal v-model="showPasswordModal">
@@ -192,17 +213,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useUserStore } from '~/stores/user'
+import { storeToRefs } from 'pinia'
+import type { ApiResponse, User } from '~/interfaces/common'
 
-const username = ref('Lanieza')
-const email = ref('lanieza@example.com')
-const firstName = ref('John')
-const lastName = ref('Doe')
+const userStore = useUserStore()
+const { user } = storeToRefs(userStore)
+
+const username = ref<string>(user.value?.username ?? '')
+const email = ref<string>(user.value?.email ?? '')
+const firstName = ref<string>(user.value?.first_name ?? '')
+const lastName = ref<string>(user.value?.last_name ?? '')
+const userImage = ref<string | null>(null)
 
 const showPasswordModal = ref(false)
 const showDeleteModal = ref(false)
-
-const userImage = ref<string | null>(null)
 
 const currentPassword = ref('')
 const newPassword = ref('')
@@ -212,27 +238,61 @@ const show = ref(false)
 const showNew = ref(false)
 const showConfirm = ref(false)
 
+// Keep form in sync with user store
+watch(user, () => {
+    username.value = user.value?.username ?? ''
+    email.value = user.value?.email ?? ''
+    firstName.value = user.value?.first_name ?? ''
+    lastName.value = user.value?.last_name ?? ''
+})
+
+// Update profile using store method
+async function updateProfile() {
+    const updateData: Partial<User> = {
+        username: username.value,
+        email: email.value,
+        first_name: firstName.value,
+        last_name: lastName.value,
+    }
+
+    const response: ApiResponse<any> = await userStore.updateUser(updateData)
+
+    if (response.success) {
+        alert('Profile updated successfully!')
+    } else {
+        alert(`Update failed: ${response.message}`)
+    }
+}
+
+// Account deletion using store
+async function confirmDelete() {
+    const response: ApiResponse<null> = await userStore.deleteAccount()
+
+    if (response.success) {
+        alert('Account deleted successfully!')
+        // redirect to login or homepage here
+    } else {
+        alert(`Delete failed: ${response.message}`)
+    }
+
+    showDeleteModal.value = false
+}
+
+// Password change — dummy implementation for now
 function changePassword() {
     if (newPassword.value !== confirmPassword.value) {
         alert('New passwords do not match!')
         return
     }
 
-    // Add real password update logic here
     console.log('Password changed:', {
         current: currentPassword.value,
         new: newPassword.value,
     })
 
     showPasswordModal.value = false
-    // Clear form
     currentPassword.value = ''
     newPassword.value = ''
     confirmPassword.value = ''
-}
-
-function confirmDelete() {
-    console.log('Account deleted!')
-    showDeleteModal.value = false
 }
 </script>

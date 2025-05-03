@@ -100,7 +100,7 @@
 import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import type { LoginPayload } from '~/interfaces/auth'
-import { useUserStore } from '~/stores/auth'
+import { useUserStore } from '~/stores/user'
 
 const show = ref(false)
 const form = ref<LoginPayload>({

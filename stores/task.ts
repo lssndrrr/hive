@@ -12,7 +12,7 @@ export const useUserTaskStore = defineStore('userTasks', {
         async fetchUserTasks(userId: number) {
             this.isLoading = true
             const res = await api.get<ApiResponse<Task[]>>(
-                `/tasks/?assignee=${userId}`
+                `/task/?assignee=${userId}`
             )
             this.tasks = res.data?.data || []
             this.isLoading = false
@@ -32,7 +32,7 @@ export const useHiveTaskStore = defineStore('hiveTasks', {
         async fetchHiveTasks(hiveId: number) {
             this.isLoading = true
             const res = await api.get<ApiResponse<Task[]>>(
-                `/tasks/?hive=${hiveId}`
+                `/task/?hive=${hiveId}`
             )
             this.tasks = res.data?.data || []
             this.isLoading = false
