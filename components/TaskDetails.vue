@@ -39,17 +39,17 @@
             </div>
 
             <div class="flex flex-col space-y-2">
-                <UPopover :popper="{ placement: 'bottom-start' }">
+                <UPopover :default="{ align: 'center', side: 'bottom', }">
                     <template #default="{ open }">
-                         <UButton
-                            color="neutral"
-                            variant="solid"
-                            icon="mdi:calendar"
-                            size="md"
-                            class="text-[#A86523] hover:bg-[#E9A319] hover:text-white justify-start w-full"
-                            :class="[open ? 'bg-[#E9A319]/80 text-white' : '']"
-                            :label="editableDueDate ? formatDate(editableDueDate) : 'Select Due Date'"
-                         />
+                        <UButton
+                        color="neutral"
+                        variant="solid"
+                        icon="mdi:calendar"
+                        size="md"
+                        class="text-[#A86523] hover:bg-[#E9A319] hover:text-white justify-start w-full"
+                        :class="[open ? 'bg-[#E9A319]/80 text-white' : '']"
+                        :label="editableDueDate ? formatDate(editableDueDate) : 'Select Due Date'"
+                        />
                     </template>
 
                     <template #panel="{ close }">
@@ -74,7 +74,7 @@
                 <UButton
                     color="neutral" variant="solid" icon="material-symbols:person-rounded" size="md" class="text-[#A86523] hover:bg-[#E9A319] hover:text-white justify-start" @click="emit('assign-user', task)"
                 >
-                    {{ task.assignee?.name ? `Assigned to ${task.assignee.name}` : 'Assign To' }}
+                    {{ task.assignee ? `Assigned to ${task.assignee}` : 'Assign To' }}
                 </UButton>
             </div>
         </div>
@@ -94,7 +94,8 @@
 import { ref, watch } from 'vue';
 import type { PropType } from 'vue';
 import { format, isValid } from 'date-fns'; // Import isValid
-import type { Task } from '~/types';
+import type { Task } from '~/interfaces/task';
+import type { HiveMember } from '~/interfaces/hive';
 
 // --- Props ---
 const props = defineProps({
@@ -116,22 +117,27 @@ const emit = defineEmits([
 
 // --- Local State for Editing ---
 const currentStatus = ref(props.task.status || 'todo');
-const editableTitle = ref(props.task.title || '');
+const editableTitle = ref(props.task.name || '');
 // Local state for the date picker, initialize carefully
 const editableDueDate = ref<Date | undefined>(
-    props.task.date && isValid(new Date(props.task.date)) ? new Date(props.task.date) : undefined
+    props.task.due_date && isValid(new Date(props.task.due_date)) ? new Date(props.task.due_date) : undefined
 );
 
 // --- Watch for prop changes to update local state ---
 watch(() => props.task, (newTask) => {
   currentStatus.value = newTask?.status || 'todo';
-  editableTitle.value = newTask?.title || '';
+  editableTitle.value = newTask?.name || '';
   // Update local date only if the prop date is valid
-  editableDueDate.value = newTask?.date && isValid(new Date(newTask.date)) ? new Date(newTask.date) : undefined;
+  editableDueDate.value = newTask?.due_date && isValid(new Date(newTask.due_date)) ? new Date(newTask.due_date) : undefined;
 }, { immediate: true, deep: true });
 
 // --- Status Options ---
-const statusOptions = ref([ /* ... */ ]);
+const statusOptions = ref([
+  { label: 'To Do', value: 'todo' },
+  { label: 'In Progress', value: 'inprogress' },
+  { label: 'Done', value: 'done' }
+]);
+
 
 // --- Methods ---
 function closePanel() { emit('close'); }
@@ -141,7 +147,7 @@ function updateStatus() {
 }
 
 function updateTitle() {
-    if (editableTitle.value !== props.task.title) {
+    if (editableTitle.value !== props.task.name) {
         emit('update-title', { taskId: props.task.id, title: editableTitle.value });
     }
 }
@@ -150,7 +156,7 @@ function updateTitle() {
 function handleDateUpdate(closePopover: () => void) {
     console.log('Date updated:', editableDueDate.value);
     // Check if the date actually changed
-    const originalDateStr = props.task.date ? new Date(props.task.date).toISOString().split('T')[0] : null;
+    const originalDateStr = props.task.due_date ? new Date(props.task.due_date).toISOString().split('T')[0] : null;
     const newDateStr = editableDueDate.value ? editableDueDate.value.toISOString().split('T')[0] : null;
 
     if (originalDateStr !== newDateStr) {

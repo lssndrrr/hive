@@ -10,7 +10,7 @@
                     class="flex items-center justify-between p-3 rounded-lg bg-[#FCEFCB] hover:bg-[#FAD59A] cursor-pointer group"
                     @click="emit('view-task-details', task)"
                 >
-                    <span class="text-sm text-[#A86523]">{{ task.title }}</span>
+                    <span class="text-sm text-[#A86523]">{{ task.name }}</span>
                     <UDropdown :items="taskOptions(task)" :popper="{ placement: 'bottom-end' }">
                         <UButton
                             color="neutral"
@@ -38,7 +38,7 @@
                     class="flex items-center justify-between p-3 rounded-lg bg-[#FCEFCB] hover:bg-[#FAD59A] cursor-pointer group"
                     @click="emit('view-task-details', task)"
                 >
-                    <span class="text-sm text-[#A86523]">{{ task.title }}</span>
+                    <span class="text-sm text-[#A86523]">{{ task.name }}</span>
                     <UDropdown :items="taskOptions(task)" :popper="{ placement: 'bottom-end' }">
                         <UButton
                             color="neutral"
@@ -65,7 +65,7 @@
                     class="flex items-center justify-between p-3 rounded-lg bg-[#FCEFCB] hover:bg-[#FAD59A] cursor-pointer group"
                     @click="emit('view-task-details', task)"
                 >
-                    <span class="text-sm text-[#A86523] line-through opacity-70">{{ task.title }}</span> 
+                    <span class="text-sm text-[#A86523] line-through opacity-70">{{ task.name }}</span> 
                     <UDropdown :items="taskOptions(task)" :popper="{ placement: 'bottom-end' }">
                         <UButton
                             color="neutral"
@@ -99,7 +99,7 @@
 
 <script setup lang="ts">
 import type { PropType } from 'vue';
-import type { Task } from '~/types';
+import type { Task } from '~/interfaces/task';
 
 const props = defineProps({
     todoTasks: {
