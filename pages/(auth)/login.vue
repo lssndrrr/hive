@@ -10,6 +10,7 @@
             >
                 Login
             </h1>
+
             <form @submit.prevent="login" class="flex flex-col space-y-6">
                 <div class="flex flex-col space-y-2">
                     <label
@@ -97,19 +98,38 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import type { LoginPayload } from '~/interfaces/auth'
+// import { useUserStore } from '~/stores/auth'
+
 const show = ref(false)
 const form = ref<LoginPayload>({
     username: '',
     password: '',
 })
 
-const userStore = useUserStore()
+// const userStore = useUserStore()
+const router = useRouter()
 
 const login = async () => {
     try {
-        if (form.value) await userStore.login(form.value)
+        if (form.value) {
+            // await userStore.login(form.value)
+
+            // console.log('User after login:', userStore.user)
+
+            // const username = userStore.user?.username
+            alert('Login successful!')
+
+            // if (username) {
+            //     router.push(`/u/${username}`)
+            // } else {
+            //     console.error('Username not found after login')
+            //     alert('Login succeeded, but username is missing.')
+            // }
+        }
     } catch (err: any) {
+        alert('Invalid username or password.')
         console.log(err)
     }
 }

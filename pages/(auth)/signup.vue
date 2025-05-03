@@ -194,9 +194,11 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 import type { RegisterPayload } from '~/interfaces/auth'
 
 const userStore = useUserStore()
+const router = useRouter()
 
 const form = ref<RegisterPayload & { confirm_password: string }>({
     first_name: '',
@@ -215,8 +217,13 @@ const signup = async () => {
         return
     }
     try {
-        if (form.value) await userStore.register(form.value)
+        if (form.value) {
+            await userStore.register(form.value)
+            alert('Sign up successful!')
+            router.push('/login')
+        }
     } catch (err: any) {
+        alert('Sign up failed. Please try again.')
         console.log(err)
     }
 }

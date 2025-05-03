@@ -23,7 +23,6 @@
                     <UButton
                         color="secondary"
                         variant="solid"
-                        @click="fileInput?.click()"
                         class="camera-icon"
                     >
                         <UIcon
@@ -33,33 +32,46 @@
                     </UButton>
 
                     <template #content>
-                        <Placeholder class="h-48" />
-                        <div class="flex flex-column gap-4 justify-center">
-                            <UButton
-                                type="submit"
-                                color="secondary"
-                                size="xl"
-                                style="font-family: 'Nexa'; font-weight: 800"
-                                class="flex justify-center hover:bg-primary text-white"
+                        <Placeholder
+                            class="h-30 flex justify-center items-center"
+                        >
+                            <div
+                                class="flex flex-column gap-4 items-center justify-center"
                             >
-                                Add Image
-                            </UButton>
-                            <UButton
-                                type="submit"
-                                color="error"
-                                size="xl"
-                                style="font-family: 'Nexa'; font-weight: 800"
-                                class="flex justify-center hover:bg-primary text-white"
-                            >
-                                Remove Image Image
-                            </UButton>
-                        </div>
+                                <UButton
+                                    type="submit"
+                                    color="primary"
+                                    size="xl"
+                                    variant="soft"
+                                    @click="fileInput?.click()"
+                                    style="
+                                        font-family: 'Nexa';
+                                        font-weight: 800;
+                                    "
+                                    class="flex justify-center hover:bg-primary text-white"
+                                >
+                                    Add Image
+                                </UButton>
+                                <UButton
+                                    type="submit"
+                                    color="error"
+                                    size="xl"
+                                    variant="soft"
+                                    @click="removeImage"
+                                    style="
+                                        font-family: 'Nexa';
+                                        font-weight: 800;
+                                    "
+                                    class="flex justify-center hover:bg-error text-white"
+                                >
+                                    Remove Image
+                                </UButton>
+                            </div>
+                        </Placeholder>
                     </template>
                 </UModal>
             </div>
         </div>
-
-        <!-- Hidden File Input -->
         <input
             ref="fileInput"
             type="file"
