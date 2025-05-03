@@ -1,7 +1,7 @@
 <template>
-  <div class="flex">
+  <div class="flex h-screen overflow-hidden">
     <Sidebar />
-    <main class="flex-1 p-6 pl-32">
+    <main class="pl-24">
       <slot></slot>
     </main>
   </div>

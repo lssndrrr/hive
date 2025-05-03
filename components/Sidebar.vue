@@ -12,12 +12,7 @@
                     </NuxtLink>
                 </li>
                 <li class="flex justify-center">
-                     <NuxtLink to="/tasks" aria-label="Tasks">
-                        <Icon name="solar:checklist-minimalistic-bold" />
-                    </NuxtLink>
-                </li>
-                <li class="flex justify-center">
-                     <NuxtLink to="/hives" aria-label="Hives">
+                     <NuxtLink to="/hive/testhive" aria-label="Hives">
                         <Icon name="material-symbols:hive-rounded" />
                     </NuxtLink>
                 </li>
@@ -38,10 +33,6 @@
         </nav>
     </aside>
   </template>
-  
-  <script setup>
-  
-  </script>
   
   <style scoped>
   a { /* Using 'a' as NuxtLink renders an anchor tag */
