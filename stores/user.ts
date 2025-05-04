@@ -124,7 +124,27 @@ export const useUserStore = defineStore('user', {
                 }
             }
         },
+        async changePassword(current: string, newPassword: string) {
+            try {
+                const res = await api.post('/user/change_password/', {
+                    current_password: current,
+                    new_password: newPassword,
+                })
 
+                return {
+                    success: true,
+                    message:
+                        res.data.message || 'Password changed successfully.',
+                }
+            } catch (err: any) {
+                const errorMsg =
+                    err.response?.data?.detail || 'Password change failed.'
+                return {
+                    success: false,
+                    message: errorMsg,
+                }
+            }
+        },
         async updateUser(
             data: Partial<AuthResponse['user']>
         ): Promise<ApiResponse<AuthResponse>> {

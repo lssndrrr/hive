@@ -13,13 +13,13 @@
 
     --ui-warning: #e8a318;
 
-    --ui-error: red;
+    --ui-error: rgb(172, 0, 0);
 
-    --ui-bg: #fcefcb;
+    --ui-bg: #e9a319;
 
     --ui-neutral: rgb(159, 106, 106);
 }
 
 body {
-    background-color: #FFF8E5;
+    background-color: #fff8e5;
 }

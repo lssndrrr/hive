@@ -17,3 +17,14 @@ export interface Task {
 export interface TaskResponse {
     tasks: Task[]
 }
+
+export interface NewTask {
+    name: string
+    description: string
+    assignee: number | null
+    date: Date | undefined
+    status: Status
+    priority: Priority
+    hive: number
+    created_by: number
+}

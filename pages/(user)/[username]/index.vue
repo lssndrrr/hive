@@ -80,24 +80,15 @@
                 </div>
                 <div class="w-full">
                     <Calendar
-                        :tasks="allHiveTasks"
+                        :task="allHiveTasks"
                         @view-task-details="showTaskDetails"
                     />
                 </div>
             </div>
         </div>
-
-        <div class="h-full overflow-hidden">
-            <TaskDetails
-                v-model="isDetailsOpen"
-                v-if="isDetailsOpen && selectedTask"
-                :task="selectedTask"
-                @close="isDetailsOpen = false"
-            ></TaskDetails>
-        </div>
     </div>
 
-    <!-- add task modal -->
+    <!-- Add Task Modal -->
     <div
         v-if="isAddTaskModalOpen"
         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 p-4"
@@ -117,92 +108,92 @@
             </template>
 
             <div class="flex flex-col p-4 space-y-4">
-                <div>
-                    <UInput
-                        v-model="newTask.title"
-                        placeholder="Enter task title"
-                        color="neutral"
-                        class="w-full"
-                    />
-                </div>
+                <UInput
+                    v-model="newTask.name"
+                    placeholder="Enter task name"
+                    color="neutral"
+                    class="w-full"
+                />
 
-                <div>
-                    <UTextarea
-                        v-model="newTask.description"
-                        placeholder="Add details..."
-                        color="neutral"
-                        autoresize
-                        class="w-full"
-                    />
-                </div>
-
-                <div>
+                <UTextarea
+                    v-model="newTask.description"
+                    placeholder="Add details..."
+                    color="neutral"
+                    autoresize
+                    class="w-full"
+                />
+                <div class="flex flex-row gap-2">
                     <USelectMenu
-                        v-model="newTask.assignee"
-                        :items="memberOptions"
-                        option-attribute="name"
-                        value-attribute="id"
-                        placeholder="Select member"
-                        searchable
-                        color="neutral"
-                        class="w-full"
-                    >
-                        <template>
-                            <span v-if="newTask.assignee">{{
-                                memberNameById(newTask.assignee)
-                            }}</span>
-                            <span
-                                v-else
-                                class="text-gray-500 dark:text-gray-400"
-                                >Select member</span
-                            >
-                        </template>
-                        <template #item="{ item }">
-                            <span>{{ item.name }}</span>
-                        </template>
-                    </USelectMenu>
+                        v-model="statusValue"
+                        :items="status"
+                        class="w-48"
+                    />
+                    <USelectMenu
+                        v-model="prioValue"
+                        :items="priority"
+                        class="w-48"
+                    />
                 </div>
+                <USelectMenu
+                    v-model="newTask.assignee"
+                    :items="memberOptions"
+                    option-attribute="name"
+                    value-attribute="id"
+                    placeholder="Select member"
+                    searchable
+                    class="w-full"
+                >
+                    <template #label>
+                        <span v-if="newTask.assignee">
+                            {{ memberNameById(newTask.assignee) }}
+                        </span>
+                        <span v-else class="text-white/50">Select member</span>
+                    </template>
 
-                <div>
-                    <UPopover :popper="{ placement: 'bottom-start' }">
-                        <template #default="{ open }">
-                            <UButton
-                                color="neutral"
-                                variant="outline"
-                                icon="i-heroicons-calendar-days-20-solid"
-                                size="sm"
-                                class="text-[#A86523] border-[#A86523]/50 justify-start w-full"
-                                :label="
-                                    newTask.date
-                                        ? format(newTask.date, 'MMM dd, yyyy')
-                                        : 'Select Due Date'
-                                "
+                    <template #item="{ item }">
+                        <span>{{ item.name }}</span>
+                    </template>
+                </USelectMenu>
+                <UPopover :popper="{ placement: 'bottom-start' }">
+                    <template #default="{ open }">
+                        <UButton
+                            color="secondary"
+                            variant="solid"
+                            icon="i-heroicons-calendar-days-20-solid"
+                            size="sm"
+                            class="w-full"
+                            :label="
+                                newTask.date
+                                    ? format(newTask.date, 'MMM dd, yyyy')
+                                    : 'Select Due Date'
+                            "
+                            @click="open"
+                        />
+                    </template>
+
+                    <template #panel="{ close }">
+                        <div class="p-2 bg-white rounded shadow">
+                            <UCalendar
+                                v-model="newTask.date"
+                                @update:model-value="close()"
                             />
-                        </template>
-                        <template #panel="{ close }">
-                            <div class="p-2">
-                                <UCalendar
-                                    v-model="newTask.date"
-                                    @update:model-value="close()"
+                            <div class="flex justify-end pt-2">
+                                <UButton
+                                    label="Clear"
+                                    variant="ghost"
+                                    color="neutral"
+                                    size="xs"
+                                    @click="
+                                        () => {
+                                            newTask.date = undefined
+                                            close()
+                                        }
+                                    "
                                 />
-                                <div class="flex justify-end pt-2">
-                                    <UButton
-                                        label="Clear"
-                                        variant="ghost"
-                                        color="neutral"
-                                        size="xs"
-                                        @click="
-                                            () => {
-                                                newTask.date = undefined
-                                                close()
-                                            }
-                                        "
-                                    />
-                                </div>
                             </div>
-                        </template>
-                    </UPopover>
-                </div>
+                        </div>
+                    </template>
+                </UPopover>
             </div>
 
             <template #footer>
@@ -212,15 +203,17 @@
                         variant="ghost"
                         class="text-[#A86523] hover:bg-transparent hover:text-white"
                         @click="isAddTaskModalOpen = false"
-                        >Cancel</UButton
                     >
+                        Cancel
+                    </UButton>
                     <UButton
                         color="primary"
                         variant="solid"
                         class="text-white"
-                        @click=""
-                        >Add Task</UButton
+                        @click="submitTask"
                     >
+                        Add Task
+                    </UButton>
                 </div>
             </template>
         </UCard>
@@ -233,7 +226,14 @@ import { ref } from 'vue'
 import type { Task } from '~/types'
 import { format } from 'date-fns'
 import { useUserStore } from '@/stores/user'
+import { reactive } from 'vue'
+import type { NewTask } from '@/interfaces/task'
 const userStore = useUserStore()
+
+const status = ref(['Todo', 'In Progress', 'Done', 'Overdue'])
+const statusValue = ref('Todo')
+const priority = ref(['High', 'Medium', 'Low'])
+const prioValue = ref('Medium')
 
 const isDetailsOpen = ref(false)
 const selectedTask = ref<Task | null>(null)
@@ -244,7 +244,17 @@ const defaultNewTaskState = () => ({
     assignee: undefined as string | number | undefined,
     date: undefined as Date | undefined,
 })
-const newTask = ref(defaultNewTaskState())
+
+const newTask = reactive<NewTask>({
+    name: '',
+    description: '',
+    assignee: null,
+    date: undefined,
+    status: 'TD',
+    priority: 'M',
+    hive: 1,
+    created_by: userStore.user?.id ?? 0,
+})
 
 definePageMeta({
     layout: 'user',
@@ -306,6 +316,30 @@ function showAddTaskModal() {
     console.log('Handling add task...')
     selectedTask.value = null
     isAddTaskModalOpen.value = true
+}
+
+function submitTask() {
+    // Convert date to ISO string for API if needed
+    const payload = {
+        ...newTask,
+        due_date: newTask.date?.toISOString().split('T')[0],
+    }
+
+    // Call your API/store action to save task
+    console.log('Submitting new task:', payload)
+
+    // Clear and close modal
+    Object.assign(newTask, {
+        name: '',
+        description: '',
+        assignee: null,
+        date: undefined,
+        status: 'TD',
+        priority: 'M',
+        hive: 1,
+        created_by: userStore.user?.id ?? 0,
+    })
+    isAddTaskModalOpen.value = false
 }
 </script>
 

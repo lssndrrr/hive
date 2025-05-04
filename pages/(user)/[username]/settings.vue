@@ -160,6 +160,7 @@
                                         font-weight: 800;
                                     "
                                     size="xl"
+                                    @click="handlePasswordChange"
                                 >
                                     Submit
                                 </UButton>
@@ -180,7 +181,7 @@
                 </UButton>
                 <template #content>
                     <div class="rounded-xl p-6 max-w-md mx-auto text-center">
-                        <h2 class="text-xl font-bold text-red-600 mb-4">
+                        <h2 class="text-xl font-bold text-error mb-4">
                             Confirm Deletion
                         </h2>
                         <p class="text-gray-700 mb-6">
@@ -190,19 +191,11 @@
                         <div class="flex justify-center gap-4">
                             <UButton
                                 color="error"
-                                variant="subtle"
+                                variant="outline"
                                 @click="confirmDelete"
                                 class="font-bold"
                             >
                                 Yes, Delete
-                            </UButton>
-                            <UButton
-                                color="secondary"
-                                variant="subtle"
-                                @click="showDeleteModal = false"
-                                class="font-bold"
-                            >
-                                No, Cancel
                             </UButton>
                         </div>
                     </div>
@@ -216,6 +209,7 @@
 import { ref, watch } from 'vue'
 import { useUserStore } from '~/stores/user'
 import { storeToRefs } from 'pinia'
+import { useRouter } from 'vue-router'
 import type { ApiResponse, User } from '~/interfaces/common'
 
 const userStore = useUserStore()
@@ -237,6 +231,7 @@ const confirmPassword = ref('')
 const show = ref(false)
 const showNew = ref(false)
 const showConfirm = ref(false)
+const router = useRouter()
 
 // Keep form in sync with user store
 watch(user, () => {
@@ -267,19 +262,15 @@ async function updateProfile() {
 // Account deletion using store
 async function confirmDelete() {
     const response: ApiResponse<null> = await userStore.deleteAccount()
-
     if (response.success) {
         alert('Account deleted successfully!')
-        // redirect to login or homepage here
+        router.push('/login')
     } else {
         alert(`Delete failed: ${response.message}`)
     }
-
     showDeleteModal.value = false
 }
-
-// Password change — dummy implementation for now
-function changePassword() {
+const handlePasswordChange = async () => {
     if (newPassword.value !== confirmPassword.value) {
         alert('New passwords do not match!')
         return
@@ -290,9 +281,18 @@ function changePassword() {
         new: newPassword.value,
     })
 
-    showPasswordModal.value = false
-    currentPassword.value = ''
-    newPassword.value = ''
-    confirmPassword.value = ''
+    const result = await userStore.changePassword(
+        currentPassword.value,
+        newPassword.value
+    )
+
+    alert(result.message)
+
+    if (result.success) {
+        showPasswordModal.value = false
+        currentPassword.value = ''
+        newPassword.value = ''
+        confirmPassword.value = ''
+    }
 }
 </script>
