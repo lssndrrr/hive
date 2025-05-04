@@ -22,6 +22,7 @@ export const useUserStore = defineStore('user', {
                     '/auth/login/',
                     credentials
                 )
+                console.log('HERE')
                 if (res.data.data?.user) this.user = res.data.data?.user
                 return {
                     data: res.data.data,
@@ -128,8 +129,9 @@ export const useUserStore = defineStore('user', {
             data: Partial<AuthResponse['user']>
         ): Promise<ApiResponse<AuthResponse>> {
             try {
+                // await api.get('/auth/csrf/')
                 const res = await api.patch<ApiResponse<AuthResponse>>(
-                    '/auth/',
+                    `/user/${this.user?.username}/`,
                     data
                 )
 
