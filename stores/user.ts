@@ -71,7 +71,7 @@ export const useUserStore = defineStore('user', {
         },
         async deleteAccount(): Promise<ApiResponse<null>> {
             try {
-                const res = await api.delete<ApiResponse<null>>('/user/')
+                const res = await api.delete<ApiResponse<null>>('/user/me/')
 
                 return {
                     data: null,
