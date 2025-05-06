@@ -93,6 +93,23 @@ export const useUserStore = defineStore('user', {
                 }
             }
         },
+        async fetchUser() {
+            if (this.user) {
+                return
+            }
+            // Try to fetch user info if not already present
+            try {
+                const res = await api.get('/user/me') // Fetch user info from API or check cookie
+                if (res.data.data?.user) {
+                    this.user = res.data.data.user
+                } else {
+                    console.warn('No user in response:', res.data)
+                }
+            } catch (error) {
+                console.error('Failed to fetch user info:', error)
+                this.user = null
+            }
+        },
         async fetchAccount(
             username: string
         ): Promise<ApiResponse<AuthResponse>> {
@@ -145,6 +162,35 @@ export const useUserStore = defineStore('user', {
                 }
             }
         },
+        async logout(): Promise<ApiResponse<null>> {
+            try {
+                await api.get('/auth/csrf/') // Step 1: get CSRF token
+                const res = await api.post<ApiResponse<null>>('/auth/logout/') // Step 2: logout request
+
+                this.user = null
+                useCookie('auth_token').value = null
+
+                useRouter().push('/login')
+                window.history.replaceState(null, '', '/login')
+                return {
+                    data: null,
+                    success: true,
+                    error: null,
+                    message: res.data.message || 'Logout successful!',
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Logout failed.',
+                }
+
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Logout failed.',
+                }
+            }
+        },
         async updateUser(
             data: Partial<AuthResponse['user']>
         ): Promise<ApiResponse<AuthResponse>> {
@@ -179,4 +225,5 @@ export const useUserStore = defineStore('user', {
             }
         },
     },
+    persist: true,
 })
