@@ -8,7 +8,7 @@
             <h2 id="hive-panel-title" class="text-lg font-semibold text-[#A86523]">Hives</h2>
         </div>
 
-        <div class="flex-grow overflow-y-auto hive-list-scroll">
+        <div class="flex-grow overflow-y-auto hive-list-scroll justify-between">
             <ul class="space-y-1">
                 <li v-for="hive in hives" :key="hive.id">
                     <NuxtLink
@@ -21,7 +21,7 @@
                         <span>{{ hive.name }}</span>
                         </span>
                         <button class="opacity-0 group-hover:opacity-100 transition-opacity" aria-label="Hive options">
-                            <Icon name="i-heroicons-ellipsis-horizontal-20-solid" class="w-4 h-4" />
+                            <Icon name="i-heroicons-ellipsis-horizontal-20-solid" class="w-4 h-4 cursor-pointer hover:text-[#E9A319]" />
                         </button>
                     </NuxtLink>
                 </li>
@@ -29,6 +29,13 @@
             <div v-if="!hives || hives.length === 0" class="text-center text-[#A86523]/70 text-sm mt-4">
                 No hives found.
             </div>
+            <NuxtLink
+                to="/hive/create" class="inline-flex items-center justify-center px-4 py-2 text-white bg-[#A86523] hover:bg-[#E9A319] rounded-lg shadow text-sm font-medium"
+                style="font-family: 'Nexa'; font-weight: 800"
+                >
+                <Icon name="material-symbols:add-circle-outline" class="w-5 h-5 mr-1" />
+                Add Hive
+            </NuxtLink>
         </div>
     </aside>
 </template>

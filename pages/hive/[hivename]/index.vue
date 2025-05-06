@@ -14,7 +14,7 @@
       <div>
         <div class="flex items-center space-x-2 pt-8">
           <Icon name="material-symbols:hive-rounded" class="h-6 w-6 bg-[#A86523]" />
-          <h1 class="text-xl font-bold text-[#A86523]">Hive Alpha</h1>
+          <h1 class="text-xl font-bold text-[#A86523]">{{ currentHive?.name || 'Hive Dashboard' }}</h1>
         </div>
       </div>
 

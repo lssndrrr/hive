@@ -5,15 +5,14 @@
         @click="viewDetails"
     >
           <div class="flex justify-between items-center mb-4">
-            <h3 class="text-md font-bold text-[#A86523]">{{ task.title }}</h3>
-            
+            <h3 class="text-md font-bold text-[#A86523]">{{ task.name }}</h3>
           </div>
 
           <div class="flex justify-between items-center text-xs text-[#A86523]">
             
             <div class="flex items-center">
                 <Icon name="material-symbols:calendar-month-outline-rounded" class="w-4 h-4 mr-1 bg-[#A86523]" />
-                <span>{{ formatDate(task.date) }}</span>
+                <span>{{ formatDate(task.due_date) }}</span>
             </div>
 
             <div class="flex items-center">
@@ -23,30 +22,42 @@
 
             <div class="flex items-center">
                 <UAvatar
-                    :src="task.assignee?.avatarUrl"
-                    :alt="task.assignee?.name || 'Unassigned'"
-                    size="2xs"
+                    :src="assigneeAvatarUrl || undefined" :alt="assigneeName || 'Unassigned'" size="2xs"
+                    icon="i-heroicons-user-circle"
+                    class="bg-[#A86523] text-[#FFF8E5]"
                 />
-                <span v-if="!task.assignee?.avatarUrl" class="ml-1">{{ task.assignee?.name || 'Unassigned' }}</span>
+                <span v-if="!assigneeAvatarUrl" class="ml-1 truncate">{{ assigneeName || 'Unassigned' }}</span>
             </div>
-
           </div>          
     </UCard>
 </template>
 
 <script setup lang="ts">
-import { format } from 'date-fns';
+import { format, isValid } from 'date-fns';
 import type { PropType } from 'vue';
-import type { Task } from '~/types';
+import type { Task, NewTask } from '~/interfaces/task';
+import type { HiveMember } from '~/interfaces/hive';
+import { useUserTaskStore } from '~/stores/task';
+import { useHiveTaskStore } from '~/stores/task';
 
-    const props = defineProps({
-      task: {
-        type: Object as PropType<Task>,
-        required: true,
-      },
-    });
+const props = defineProps({
+  // Task object conforming to the Task interface
+  task: {
+    type: Object as PropType<Task>,
+    required: true,
+  },
+  // Assignee details passed down from the parent component
+  assigneeName: {
+      type: String as PropType<string | null>,
+      default: null
+  },
+  assigneeAvatarUrl: {
+      type: String as PropType<string | null>,
+      default: null
+  }
+});
 
-    const emit = defineEmits(['view-details']);
+const emit = defineEmits(['view-details', 'edit-task', 'delete-task']);
 
     function viewDetails() {
       emit('view-details', props.task);
@@ -64,20 +75,22 @@ import type { Task } from '~/types';
       }]
     ];
 
-    const formatDate = (date) => {
-      try {
-        // Ensure the input is treated as a Date object
-        const dateObj = new Date(date);
-        // Check if the date is valid before formatting
-        if (isNaN(dateObj.getTime())) {
-            throw new Error('Invalid date value');
+    const formatDate = (dateString: string | null | undefined): string => {
+    if (!dateString) return 'No date'; // Handle null or undefined
+    try {
+        const dateObj = new Date(dateString);
+        // Check if the parsed date is valid
+        if (!isValid(dateObj)) {
+            // Optionally log the invalid date string for debugging
+            // console.warn(`Invalid date string received: ${dateString}`);
+            return 'Invalid date';
         }
-        return format(dateObj, 'MMM dd'); // e.g., Nov 17
-      } catch (e) {
-        console.error("Error formatting date:", e); // Log error for debugging
-        return 'Invalid Date';
-      }
-    };
+        return format(dateObj, 'MMM dd'); // Format valid date
+    } catch (e) {
+        console.error("Error formatting date:", dateString, e);
+        return 'Error date'; // Indicate an error during formatting
+    }
+};
 
 </script>
 

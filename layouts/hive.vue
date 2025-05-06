@@ -6,8 +6,9 @@
   
     <HiveSlideover
       :isOpen="isHivePanelOpen"
-      :hives="userHives"
+      :hives="hivesFromStore" 
       @close="isHivePanelOpen = false"
+      @add-hive="openAddHiveModal"
     />
       <main
       :class="[
@@ -35,24 +36,29 @@
   
 <script setup lang="ts">
 
-import { ref } from 'vue';
+import { ref, computed, onMounted } from 'vue';
+import { useHiveStore } from '~/stores/hive'; // Assuming you have a store for managing hives
+import HiveSlideover from '~/components/HiveSlideover.vue';
+import type { Hive } from '~/interfaces/hive';
 
-interface Hive { id: string | number; name: string; slug?: string; isActive?: boolean; }
+const hiveStore = useHiveStore();
 
-// State for the hive panel visibility - LIVES IN THE LAYOUT
+const isHivePanelOpen = ref(false); // Panel visibility state
+const isAddHiveModalOpen = ref(false); // Modal visibility state
 
-const isHivePanelOpen = ref(false); // Start closed
+const hivesFromStore = computed(() => hiveStore.hives);
 
-// --- Sample Hive Data ---
+onMounted(() => {
+  // Fetch hives only if the store doesn't already have them
+  if (hiveStore.hives.length === 0) {
+    console.log('Layout mounted, fetching user hives...');
+    hiveStore.fetchUserHives();
+  }
+});
 
-// This data should ideally come from a store or API call accessible by the layout
-
-const userHives = ref<Hive[]>([
-  { id: 'h1', name: 'Hive Alpha', slug: 'hive-alpha', isActive: true },
-  { id: 'h2', name: 'Project Beta', slug: 'project-beta' },
-  { id: 'h3', name: 'Research Gamma', slug: 'research-gamma' },
-]);
-
-// --- End Sample Hive Data ---
+function openAddHiveModal() {
+  console.log('Open add hive modal');
+  isAddHiveModalOpen.value = true;
+}
 
 </script>
