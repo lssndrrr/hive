@@ -21,7 +21,7 @@ export interface TaskResponse {
 export interface NewTask {
     name: string
     description: string
-    assignee: number | null
+    assignee: number | undefined
     date: Date | undefined
     status: Status
     priority: Priority
