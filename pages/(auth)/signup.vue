@@ -210,27 +210,41 @@ const form = ref<RegisterPayload & { confirm_password: string }>({
 })
 
 const show = ref(false)
+const toast = useToast()
 
 const signup = async () => {
     try {
         if (form.value) {
             if (form.value?.password !== form.value?.confirm_password) {
-                // TODO: toast saying passwords do not match
+                toast.add({
+                    description: 'Passwords do not match.',
+                    class: '!bg-white !text-red-600',
+                    color: 'error',
+                })
                 return
             }
             const res = await userStore.register(form.value)
 
             if (res.success) {
-                // TODO: toast saying res.message
+                toast.add({
+                    description: res.message,
+                    class: '!bg-white !text-green-600',
+                    color: 'success',
+                })
                 router.push('/login')
             } else {
-                // TODO: toast saying res.message and error_msg
                 const error_msg =
                     res.error?.detail ??
                     Object.values(res.error || {})
                         .flat()
                         .join('\n') ??
                     'An unknown error occurred.'
+
+                toast.add({
+                    description: `${res.message}\n${error_msg}`,
+                    class: '!bg-white !text-red-600',
+                    color: 'error',
+                })
             }
         }
     } catch (err: any) {

@@ -111,22 +111,33 @@ const form = ref<LoginPayload>({
 const userStore = useUserStore()
 const router = useRouter()
 
+const toast = useToast()
+
 const login = async () => {
     try {
         if (form.value) {
             const res = await userStore.login(form.value)
 
             if (res.success) {
-                // TODO: Add toast showing res.message
+                toast.add({
+                    description: res.message,
+                    class: '!bg-white [&>div]:',
+                    color: 'success',
+                })
                 router.push(`${userStore.user?.username}`)
             } else {
-                // TODO: Add toast showing res.message and error_msg
                 const error_msg =
                     res.error?.detail ??
                     Object.values(res.error || {})
                         .flat()
                         .join('\n') ??
                     'An unknown error occurred.'
+
+                toast.add({
+                    description: `${res.message}\n${error_msg}`,
+                    class: '!bg-white !text-red-600',
+                    color: 'error',
+                })
             }
         }
     } catch (err: any) {
