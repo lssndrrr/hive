@@ -29,7 +29,7 @@
 
         <UTextarea
           v-model="hiveDescription"
-          placeholder="Hive Description"
+          placeholder="Enter Hive Description (optional)"
           class="w-full p-2 rounded focus:outline-none"
           :ui="{
             base: 'bg-white text-[#A86523]',
@@ -40,6 +40,7 @@
           autoresize
         />
         <UButton
+          type="submit"
           label="Create"
           class="w-full px-4 py-2 justify-center text-white bg-[#A86523]"
           style="font-family: 'Nexa'; font-weight: 800"
@@ -58,9 +59,37 @@
 
 <script setup lang="ts">
 import { ref } from 'vue';
+import { useRouter } from 'vue-router';
+import { useToast } from '#imports';
+import { useHiveStore } from '@/stores/hive';
 
 definePageMeta({
   layout: 'hive'
 });
+
+const hiveName = ref('');
+const hiveDescription = ref('');
+const router = useRouter();
+const toast = useToast();
+const hiveStore = useHiveStore();
+
+async function createHive() {
+  const payload = {
+      name: hiveName.value,
+      description: hiveDescription.value,
+  };
+  const newHive = await hiveStore.createHive(payload); // Call the store action
+
+  if (newHive) {
+      toast.add({ title: 'Success', description: `Hive "${newHive.name}" created!`, color: 'success' });
+      hiveName.value = '';
+      hiveDescription.value = '';
+      // Navigate after successful creation
+      router.push(`/hive/${newHive.id}`);
+  } else {
+      // Error occurred, use the error message from the store
+      toast.add({ title: 'Creation Failed', description: hiveStore.error || 'Failed to create hive.', color: 'error' });
+  }
+}
 
 </script>
