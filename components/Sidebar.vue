@@ -39,12 +39,12 @@
             </ul>
 
             <li class="flex justify-center">
-                <NuxtLink to="/settings" aria-label="Settings/Logout">
+                <button @click="logout" aria-label="Logout">
                     <Icon
                         name="heroicons:arrow-left-on-rectangle"
                         class="w-8 h-8"
                     />
-                </NuxtLink>
+                </button>
             </li>
         </nav>
     </aside>
@@ -95,4 +95,25 @@ a.router-link-exact-active :deep(svg) {
 
 <script setup lang="ts">
 const userStore = useUserStore()
+const toast = useToast()
+const router = useRouter()
+
+const logout = async () => {
+    const res = await userStore.logout()
+
+    if (res.success) {
+        toast.add({
+            description: res.message,
+            class: '!bg-white !text-green-600',
+            color: 'success',
+        })
+        // router.push('/login')
+    } else {
+        toast.add({
+            description: res.message,
+            class: '!bg-white !text-red-600',
+            color: 'error',
+        })
+    }
+}
 </script>
