@@ -88,153 +88,22 @@
         </div>
     </div>
 
-    <!-- Add Task Modal -->
-    <div
-        v-if="isAddTaskModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 p-4"
-        @click.self="isAddTaskModalOpen = false"
-    >
-        <UCard
-            class="w-full max-w-md bg-[#FCEFCB] text-[#A86523]"
-            @click.stop
-            variant="soft"
-        >
-            <template #header>
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-semibold text-[#A86523]">
-                        Add New Task
-                    </h2>
-                </div>
-            </template>
-
-            <div class="flex flex-col p-4 space-y-4">
-                <UInput
-                    v-model="newTask.name"
-                    placeholder="Enter task name"
-                    color="neutral"
-                    class="w-full"
-                />
-
-                <UTextarea
-                    v-model="newTask.description"
-                    placeholder="Add details..."
-                    color="neutral"
-                    autoresize
-                    class="w-full"
-                />
-                <div class="flex flex-row gap-2">
-                    <USelectMenu
-                        v-model="statusValue"
-                        :items="status"
-                        class="w-48"
-                    />
-                    <USelectMenu
-                        v-model="prioValue"
-                        :items="priority"
-                        class="w-48"
-                    />
-                </div>
-                <USelectMenu
-                    v-model="newTask.assignee"
-                    :items="memberOptions"
-                    option-attribute="name"
-                    value-attribute="id"
-                    placeholder="Select member"
-                    searchable
-                    class="w-full"
-                >
-                    <template #label>
-                        <span v-if="newTask.assignee">
-                            {{ memberNameById(newTask.assignee) }}
-                        </span>
-                        <span v-else class="text-white/50">Select member</span>
-                    </template>
-
-                    <template #item="{ item }">
-                        <span>{{ item.name }}</span>
-                    </template>
-                </USelectMenu>
-                <UPopover :popper="{ placement: 'bottom-start' }">
-                    <template #default="{ open }">
-                        <UButton
-                            color="secondary"
-                            variant="solid"
-                            icon="i-heroicons-calendar-days-20-solid"
-                            size="sm"
-                            class="w-full"
-                            :label="
-                                newTask.date
-                                    ? format(newTask.date, 'MMM dd, yyyy')
-                                    : 'Select Due Date'
-                            "
-                            @click="open"
-                        />
-                    </template>
-
-                    <template #panel="{ close }">
-                        <div class="p-2 bg-white rounded shadow">
-                            <UCalendar
-                                v-model="newTask.date"
-                                @update:model-value="close()"
-                            />
-                            <div class="flex justify-end pt-2">
-                                <UButton
-                                    label="Clear"
-                                    variant="ghost"
-                                    color="neutral"
-                                    size="xs"
-                                    @click="
-                                        () => {
-                                            newTask.date = undefined
-                                            close()
-                                        }
-                                    "
-                                />
-                            </div>
-                        </div>
-                    </template>
-                </UPopover>
-            </div>
-
-            <template #footer>
-                <div class="flex justify-end space-x-2">
-                    <UButton
-                        color="neutral"
-                        variant="ghost"
-                        class="text-[#A86523] hover:bg-transparent hover:text-white"
-                        @click="isAddTaskModalOpen = false"
-                    >
-                        Cancel
-                    </UButton>
-                    <UButton
-                        color="primary"
-                        variant="solid"
-                        class="text-white"
-                        @click="submitTask"
-                    >
-                        Add Task
-                    </UButton>
-                </div>
-            </template>
-        </UCard>
-    </div>
-    <!-- add task modal end -->
+    <AddTaskModal
+        :is-open="isAddTaskModalOpen"
+        :members="memberOptions"
+        @close="isAddTaskModalOpen = false"
+        @submit="handleSubmit"
+    />
 </template>
 
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Task } from '~/types'
-import { format } from 'date-fns'
 import { useUserStore } from '@/stores/user'
 import { reactive } from 'vue'
 import type { NewTask } from '@/interfaces/task'
 
 const userStore = useUserStore()
-
-const status = ref(['Todo', 'In Progress', 'Done', 'Overdue'])
-const statusValue = ref('Todo')
-const priority = ref(['High', 'Medium', 'Low'])
-const prioValue = ref('Medium')
 
 const isDetailsOpen = ref(false)
 const selectedTask = ref<Task | null>(null)
@@ -259,7 +128,7 @@ const newTask = reactive<NewTask>({
 
 definePageMeta({
     layout: 'user',
-    middleware: 'auth', // Add this line
+    middleware: 'auth',
 })
 
 // const route = useRoute()
@@ -318,6 +187,11 @@ function showAddTaskModal() {
     console.log('Handling add task...')
     selectedTask.value = null
     isAddTaskModalOpen.value = true
+}
+
+function handleSubmit(taskPayload) {
+    console.log('Submitted task:', taskPayload)
+    isAddTaskModalOpen.value = false
 }
 
 function submitTask() {
