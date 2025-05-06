@@ -1,8 +1,7 @@
 <template>
     <Sidebar />
-    <div></div>
     <div
-        class="flex flex-col min-h-screen items-center justify-center space-y-3 bg-white text-primary"
+        class="border flex flex-col min-h-screen w-full items-center justify-center space-y-3 text-primary"
         style="font-family: 'Nexa'; font-weight: 800"
     >
         <ProfileImageUploader @update:image="userImage = $event" />
@@ -245,6 +244,7 @@ definePageMeta({
     layout: 'user',
     middleware: 'auth',
 })
+
 async function updateProfile() {
     const updateData: Partial<User> = {
         username: username.value,
