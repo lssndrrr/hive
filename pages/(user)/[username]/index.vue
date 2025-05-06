@@ -228,6 +228,7 @@ import { format } from 'date-fns'
 import { useUserStore } from '@/stores/user'
 import { reactive } from 'vue'
 import type { NewTask } from '@/interfaces/task'
+
 const userStore = useUserStore()
 
 const status = ref(['Todo', 'In Progress', 'Done', 'Overdue'])
@@ -258,9 +259,10 @@ const newTask = reactive<NewTask>({
 
 definePageMeta({
     layout: 'user',
+    middleware: 'auth', // Add this line
 })
 
-const route = useRoute()
+// const route = useRoute()
 // const username = route.params.username; // Use this in the welcome message if needed
 
 // --- Sample Data ---

@@ -48,7 +48,7 @@
                         class="rounded-5xl p-6 text-black w-full max-w-2xl mx-auto"
                     >
                         <form
-                            @submit.prevent="changePassword"
+                            @submit.prevent="handlePasswordChange"
                             class="space-y-4"
                         >
                             <h2
@@ -239,6 +239,11 @@ watch(user, () => {
     email.value = user.value?.email ?? ''
     firstName.value = user.value?.first_name ?? ''
     lastName.value = user.value?.last_name ?? ''
+})
+
+definePageMeta({
+    layout: 'user',
+    middleware: 'auth', // Add this line
 })
 
 // Update profile using store method
