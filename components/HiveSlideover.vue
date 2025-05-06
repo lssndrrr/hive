@@ -6,18 +6,6 @@
     >
         <div class="flex items-center justify-between mb-4 pb-2 border-b border-[#A86523]/30">
             <h2 id="hive-panel-title" class="text-lg font-semibold text-[#A86523]">Hives</h2>
-            
-            <div class="flex items-center space-x-1">
-                <UButton
-                icon="i-heroicons-plus-circle"
-                variant="ghost"
-                color="neutral"
-                size="sm"
-                class="text-[#A86523]"
-                aria-label="Add new hive"
-                @click="emit('add-hive')"
-                />
-            </div>
         </div>
 
         <div class="flex-grow overflow-y-auto hive-list-scroll">
