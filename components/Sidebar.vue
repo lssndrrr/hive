@@ -29,7 +29,7 @@
                     </NuxtLink>
                 </li>
                 <li class="flex justify-center">
-                    <NuxtLink to="/hive/testhive" aria-label="Hives">
+                    <NuxtLink to="/hive" aria-label="Hives">
                         <Icon
                             name="material-symbols:hive-rounded"
                             class="w-8 h-8"
