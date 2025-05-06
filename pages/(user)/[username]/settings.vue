@@ -243,10 +243,8 @@ watch(user, () => {
 
 definePageMeta({
     layout: 'user',
-    middleware: 'auth', // Add this line
+    middleware: 'auth',
 })
-
-// Update profile using store method
 async function updateProfile() {
     const updateData: Partial<User> = {
         username: username.value,
@@ -264,7 +262,6 @@ async function updateProfile() {
     }
 }
 
-// Account deletion using store
 async function confirmDelete() {
     const response: ApiResponse<null> = await userStore.deleteAccount()
     if (response.success) {
