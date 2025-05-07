@@ -109,6 +109,15 @@
                     </template>
                 </USelectMenu>
             </div>
+            <UButton
+                color="neutral"
+                variant="ghost"
+                icon="material-symbols:save"
+                size="lg"
+                class="text-white hover:bg-primary hover:text-white"
+            >
+                Save Changes
+            </UButton>
         </div>
 
         <div
