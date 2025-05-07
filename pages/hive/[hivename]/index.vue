@@ -75,6 +75,11 @@
                                     :tasks="doneTasks"
                                     @view-task-details="showTaskDetails"
                                 />
+                                <KanbanColumn
+                                    title="Overdue"
+                                    :tasks="overdueTasks"
+                                    @view-task-details="showTaskDetails"
+                                />
                             </div>
                         </div>
 
@@ -207,6 +212,7 @@
     <AddTaskModal
         :is-open="isAddTaskModalOpen"
         :members="memberOptions"
+        :created-by="userStore.user?.id || 0"
         @close="isAddTaskModalOpen = false"
         @submit="handleSubmit"
     />
@@ -214,25 +220,21 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
-import { format } from 'date-fns'
 import type { Hive, HiveMember } from '~/interfaces/hive'
-import type { Task } from '~/interfaces/task'
+import type { Task, NewTask } from '~/interfaces/task'
 import type { TabsItem } from '@nuxt/ui'
 import { useHiveTaskStore } from '~/stores/task'
 import { useHiveStore } from '~/stores/hive'
+import { useRoute } from 'vue-router'
 
 definePageMeta({
     layout: 'hive',
+    middleware: 'auth',
 })
 
+const userStore = useUserStore()
 const route = useRoute()
 const taskStore = useHiveTaskStore()
-const hiveStore = useHiveStore()
-
-const currentHiveId = computed(() => {
-    const idParam = route.params.hivename || route.params.hiveId
-    return idParam ? Number(idParam) : null
-})
 
 const isTaskDetailsOpen = ref(false)
 const isMemberDetailsOpen = ref(false)
@@ -271,16 +273,55 @@ const inProgressTasks = computed(() =>
     allTasks.value.filter((t) => t.status === 'IP')
 )
 const doneTasks = computed(() => allTasks.value.filter((t) => t.status === 'D'))
+
+const overdueTasks = computed(() =>
+    allTasks.value.filter((t) => t.status === 'OD')
+)
+
 const allHiveTasks = computed(() => allTasks.value) // For calendar
 
 const hiveMembers = computed(() => {
     return currentHiveId.value ? hiveStore.getMembers(currentHiveId.value) : []
 })
 
+const hiveStore = useHiveStore()
+const hiveId = hiveStore.currentHiveId // Get the hive ID from the store
+
 const currentHive = computed(() => {
     return currentHiveId.value
         ? hiveStore.hives.find((h) => h.id === currentHiveId.value)
         : null
+})
+
+const currentHiveId = computed(() => {
+    const idParam = route.params.hivename || route.params.hiveId
+    return idParam ? Number(idParam) : null
+})
+
+watch(
+    currentHiveId,
+    (newId, oldId) => {
+        if (newId && newId !== oldId) {
+            hiveStore.setCurrentHiveId(newId)
+        }
+    },
+    { immediate: true }
+)
+
+onMounted(async () => {
+    const hiveId = currentHiveId.value
+    if (hiveId) {
+        hiveStore.setCurrentHiveId(hiveId)
+
+        // Fetch hives if not already loaded
+        if (hiveStore.hives.length === 0) {
+            await taskStore.fetchHiveTasks(hiveId)
+        }
+
+        // Always fetch tasks for this hive when the page is loaded
+        await taskStore.fetchHiveTasks(hiveId)
+        console.log('Fetched tasks for hive:', hiveStore.hiveTasks[hiveId])
+    }
 })
 
 const memberOptions = computed(() => {
@@ -290,30 +331,37 @@ const memberOptions = computed(() => {
     }))
 })
 
+const userTaskStore = useUserTaskStore()
+const hiveTaskStore = useHiveTaskStore()
+
 const memberNameById = (id: string | number | undefined) => {
     if (!id) return ''
     return hiveMembers.value.find((m) => m.id === id)?.username || ''
 }
 
-onMounted(() => {
-    // Fetch hives if not already loaded (e.g., in layout)
-    if (hiveStore.hives.length === 0) {
-        hiveStore.fetchUserHives() // Assumes this fetches member data too
+async function handleSubmit(taskPayload: NewTask) {
+    if (!hiveId) {
+        console.error('Hive ID is not available')
+        return // Early exit if hiveId is not set
     }
-    // Fetch tasks for the current hive
-    if (currentHiveId.value && !hiveStore.hiveTasks[currentHiveId.value]) {
-        hiveStore.fetchHiveTasks(currentHiveId.value)
-    }
-})
 
-watch(currentHiveId, (newId, oldId) => {
-    if (newId && newId !== oldId && !hiveStore.hiveTasks[newId]) {
-        hiveStore.fetchHiveTasks(newId)
-    }
-})
+    console.log('Submitting new task:', taskPayload)
 
-function handleSubmit(taskPayload) {
-    console.log('Submitted task:', taskPayload)
+    // Ensure hiveId is part of the task payload
+    const updatedTaskPayload = {
+        ...taskPayload,
+        hive: hiveId, // Use the current hive ID from the store
+    }
+
+    // Now call your store to create the task with the updated payload
+    await hiveTaskStore.createHiveTask(updatedTaskPayload)
+
+    // Optionally, fetch user tasks if needed
+    // await userTaskStore.fetchUserTasks(userStore.user?.id || 10);
+
+    console.log('User Tasks after submit:', userTaskStore.tasks)
+
+    // Close the modal after submitting
     isAddTaskModalOpen.value = false
 }
 

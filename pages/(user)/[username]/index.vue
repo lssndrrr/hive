@@ -230,7 +230,7 @@ definePageMeta({
                         </h2>
                     </div>
                     <div>
-                        <UButton
+                        <!-- <UButton
                             color="neutral"
                             variant="solid"
                             icon="heroicons:plus-20-solid"
@@ -239,7 +239,7 @@ definePageMeta({
                             @click="showAddTaskModal()"
                         >
                             Add Task
-                        </UButton>
+                        </UButton> -->
                     </div>
                 </div>
 
@@ -360,11 +360,6 @@ const memberOptions = computed(() => {
 function showTaskDetails(task: Task) {
     selectedTask.value = task
     isDetailsOpen.value = true
-}
-
-function showAddTaskModal() {
-    selectedTask.value = null
-    isAddTaskModalOpen.value = true
 }
 
 async function handleSubmit(taskPayload: NewTask) {
