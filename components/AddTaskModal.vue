@@ -133,6 +133,7 @@
                         color="neutral"
                         variant="outline"
                         class="text-info"
+                        :disabled="!task.name"
                         @click="submit"
                         >Add Task</UButton
                     >
@@ -144,12 +145,16 @@
 
 <script setup lang="ts">
 import { ref, watch } from 'vue'
+import { useToast } from '#imports'
 import type { NewTask, Status, Priority } from '@/interfaces/task'
 import {
     CalendarDate,
     DateFormatter,
     getLocalTimeZone,
 } from '@internationalized/date'
+
+const userStore = useUserStore()
+const toast = useToast()
 
 const df = new DateFormatter('en-US', {
     dateStyle: 'medium',
@@ -160,6 +165,7 @@ const modelValue = shallowRef(new CalendarDate(2022, 1, 10))
 const props = defineProps<{
     isOpen: boolean
     members: { id: number | string; name: string }[]
+    createdBy: number
 }>()
 
 const selectedMember = ref<{ id: string | number; name: string } | undefined>(
@@ -212,6 +218,13 @@ watch([status, priority], ([s, p]) => {
     task.value.priority = p.id
 })
 
+watch(modelValue, (val) => {
+    if (val) {
+        const jsDate = val.toDate(getLocalTimeZone())
+        task.value.date = jsDate
+    }
+})
+
 function resetTask() {
     task.value = {
         name: '',
@@ -233,7 +246,11 @@ function close() {
     emit('close')
 }
 
-function submit() {
+async function submit() {
+    if (!task.value.name) return
+
+    task.value.created_by = userStore.user?.id || 0
+
     const finalTask = {
         ...task.value,
         status: status.value.id,
@@ -241,6 +258,13 @@ function submit() {
         due_date: task.value.date?.toISOString().split('T')[0] ?? '',
     }
 
-    emit('submit', finalTask)
+    try {
+        emit('submit', finalTask)
+        toast.add({ title: 'Task added successfully!', color: 'success' })
+        close()
+    } catch (err) {
+        console.error('Failed to submit task:', err)
+        toast.add({ title: 'Failed to add task.', color: 'error' })
+    }
 }
 </script>
