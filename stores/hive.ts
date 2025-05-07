@@ -27,11 +27,16 @@ export const useHiveStore = defineStore('hive', {
     actions: {
         async fetchUserHives() {
             this.isLoading = true
-            const res = await api.get<ApiResponse<HiveResponse[]>>('/hive/')
-            if (res.data?.success) {
-                this.hives = res.data.data || []
+            const response = await api.get<HiveResponse[]>('/hives/')
+            if (response.data) {
+                this.hives = (response.data || []).map(h => h as Hive);
+                console.log("Hives fetched and set in store:", this.hives); // For debugging
+            } else {
+                // This case might occur if api.get wraps in a different structure
+                // or if the response was truly empty but not an error.
+                this.error = 'Failed to fetch hives or no hives found.';
+                this.hives = []; // Ensure it's an empty array
             }
-            this.isLoading = false
         },
 
         async fetchHiveTasks(hiveId: number) {

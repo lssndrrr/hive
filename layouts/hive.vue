@@ -37,8 +37,7 @@
 <script setup lang="ts">
 
 import { ref, computed, onMounted } from 'vue';
-import { useHiveStore } from '~/stores/hive'; // Assuming you have a store for managing hives
-import HiveSlideover from '~/components/HiveSlideover.vue';
+import { useHiveStore } from '~/stores/hive'; 
 import type { Hive } from '~/interfaces/hive';
 
 const hiveStore = useHiveStore();
