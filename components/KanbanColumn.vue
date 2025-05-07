@@ -1,5 +1,5 @@
 <template>
-    <div class="w-[50%] h-150 bg-[#FCEFCB] p-4 rounded-lg flex flex-col">
+    <div class="w-[50%] h-100 bg-[#FCEFCB] p-4 rounded-lg flex flex-col">
         <div class="flex justify-between items-center mb-3 pb-2 border-b border-[#A86523] flex-shrink-0">
           <h2 class="text-md font-semibold text-[#A86523]  uppercase tracking-wide">{{ title }}</h2>
           <span class="text-[#FCEFCB] bg-[#A86523]  text-xs font-bold px-2 py-0.5 rounded-full">
