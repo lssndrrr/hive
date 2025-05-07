@@ -1,15 +1,20 @@
+import type { User } from '~/interfaces/common'
+import type { Task } from '~/interfaces/task'
+
+export interface CreateHivePayload {
+    name: string
+    description: string
+}
 export interface Hive {
     id: number
     name: string
     description: string
-    members: HiveMember[] // Optional: included in response
+    members: HiveMember[]
 }
 
 export interface HiveMember {
-    id: number
-    username: string
-    email: string
-    role: 'QB' | 'BK' | 'WORKER_BEE'
+    user: User
+    role: 'QB' | 'BK' | 'WB'
     joined_on: string
 }
 
@@ -18,4 +23,9 @@ export interface HiveResponse {
     name: string
     description: string
     members: HiveMember[]
+}
+
+export interface HiveFetchResponse {
+    hives: HiveResponse[]
+    tasks: Task[]
 }

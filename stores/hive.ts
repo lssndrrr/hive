@@ -1,19 +1,14 @@
-// stores/useTaskStore.ts
 import { defineStore } from 'pinia'
 import api from '~/api/api'
-import type { Hive, HiveResponse, HiveMember } from '~/interfaces/hive'
-import type { Task } from '~/interfaces/task'
+import type {
+    Hive,
+    HiveResponse,
+    HiveMember,
+    HiveFetchResponse,
+    CreateHivePayload,
+} from '~/interfaces/hive'
+import type { Task, AddTaskPayload } from '~/interfaces/task'
 import type { ApiResponse, ApiError } from '~/interfaces/common'
-
-interface CreateHivePayload {
-    name: string
-    description?: string
-}
-
-interface HiveCreateSuccessResponse {
-    message: string
-    data: HiveResponse // Or Hive if they are the same/compatible
-}
 
 export const useHiveStore = defineStore('hive', {
     state: () => ({
@@ -24,87 +19,265 @@ export const useHiveStore = defineStore('hive', {
         error: null as string | null,
     }),
 
+    getters: {
+        getTasksForHive:
+            (state) =>
+            (hiveId: number): Task[] => {
+                return state.hiveTasks[hiveId] || []
+            },
+        getMembers:
+            (state) =>
+            (hiveId: number): HiveMember[] => {
+                return state.hives.find((h) => h.id === hiveId)?.members || []
+            },
+    },
+
     actions: {
         setCurrentHiveId(hiveId: number) {
             this.currentHiveId = hiveId
         },
-        async fetchUserHives() {
-            this.isLoading = true
-            const response = await api.get<HiveResponse[]>('/hives/')
-            if (response.data) {
-                this.hives = (response.data || []).map((h) => h as Hive)
-                console.log('Hives fetched and set in store:', this.hives) // For debugging
-            } else {
-                // This case might occur if api.get wraps in a different structure
-                // or if the response was truly empty but not an error.
-                this.error = 'Failed to fetch hives or no hives found.'
-                this.hives = [] // Ensure it's an empty array
-            }
-        },
-        async createHive(payload: CreateHivePayload): Promise<Hive | null> {
+
+        async fetchUserHives(): Promise<
+            ApiResponse<HiveFetchResponse> | undefined
+        > {
             this.isLoading = true
             this.error = null
             try {
-                const response = await api.post<HiveCreateSuccessResponse>(
-                    '/hives/',
-                    payload
-                ) // Verify endpoint
+                const response = await api.get<ApiResponse<HiveFetchResponse>>(
+                    '/hive/'
+                )
+                if (response.data) {
+                    const hives = response.data.data?.hives || []
+                    const tasks = response.data.data?.tasks || []
 
-                // --- CORRECTED SUCCESS CHECK ---
-                // Check if the response contains the expected 'data' field from the backend
-                if (response.data?.data) {
-                    const newHiveData = response.data.data
-                    // Assuming HiveResponse structure matches or is compatible with Hive type used in state
-                    const newHive = newHiveData as Hive
-                    this.hives.push(newHive)
-                    console.log('Hive pushed to store state:', this.hives) // Debug log
-                    return newHive // Return the created hive object
-                } else {
-                    // Handle cases where the request succeeded (2xx) but the expected 'data' field is missing
-                    this.error =
-                        response.data?.message ||
-                        'Hive creation response structure was unexpected.'
-                    console.warn(
-                        'Hive creation response missing nested data field:',
-                        response.data
-                    )
-                    return null
+                    this.hives = hives.map((h) => h as Hive)
+
+                    this.hiveTasks = tasks.reduce((acc, task) => {
+                        ;(acc[task.hive] ||= []).push(task)
+                        return acc
+                    }, {} as Record<number, Task[]>)
+
+                    return {
+                        data: response.data.data,
+                        success: true,
+                        error: null,
+                        message:
+                            response.data.message ||
+                            'Hives fetched successfully!',
+                    }
                 }
             } catch (err: any) {
-                console.error('Error creating hive in store:', err)
-                const apiError = err
-                let errorMessage =
-                    'An unexpected error occurred during hive creation.'
-
-                if (err.response && err.response.data) {
-                    const errorData = err.response.data
-                    if (typeof errorData === 'string') {
-                        /* ... */
-                    } else if (Array.isArray(errorData)) {
-                        /* ... */
-                    } else if (
-                        typeof errorData === 'object' &&
-                        errorData !== null
-                    ) {
-                        /* ... */
-                    }
-                } else if (err.message) {
-                    /* ... */
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
                 }
-
-                this.error = errorMessage
-                return null
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Hive fetch failed.',
+                }
             } finally {
                 this.isLoading = false
             }
         },
 
-        getTasksForHive(hiveId: number): Task[] {
-            return this.hiveTasks[hiveId] || []
+        async createHive(
+            payload: CreateHivePayload
+        ): Promise<ApiResponse<Hive> | undefined> {
+            this.isLoading = true
+            this.error = null
+            try {
+                const response = await api.post<ApiResponse<HiveResponse>>(
+                    '/hive/',
+                    payload
+                )
+                if (response.data) {
+                    const newHive = response.data.data as Hive
+                    this.hives.push(newHive)
+                    return {
+                        data: newHive,
+                        success: true,
+                        message:
+                            response.data.message ||
+                            'Hive created successfully!',
+                    }
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Hive creation failed.',
+                }
+            } finally {
+                this.isLoading = false
+            }
         },
 
-        getMembers(hiveId: number): HiveMember[] {
-            return this.hives.find((h) => h.id === hiveId)?.members || []
+        async updateHive(
+            id: number,
+            payload: Partial<CreateHivePayload>
+        ): Promise<ApiResponse<Hive> | undefined> {
+            try {
+                const response = await api.put<ApiResponse<HiveResponse>>(
+                    `/hive/${id}/`,
+                    payload
+                )
+                if (response.data?.data) {
+                    const updatedHive = response.data.data as Hive
+                    this.hives = this.hives.map((h) =>
+                        h.id === id ? updatedHive : h
+                    )
+                    return { data: updatedHive, success: true }
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Hive update failed.',
+                }
+            }
+        },
+
+        async deleteHive(id: number): Promise<ApiResponse<null> | undefined> {
+            try {
+                await api.delete(`/hive/${id}/`)
+                this.hives = this.hives.filter((h) => h.id !== id)
+                delete this.hiveTasks[id]
+                return {
+                    data: null,
+                    success: true,
+                    message: 'Hive deleted successfully!',
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Hive deletion failed.',
+                }
+            }
+        },
+
+        async addTask(
+            payload: AddTaskPayload & { hive: number }
+        ): Promise<ApiResponse<Task> | undefined> {
+            if (!this.currentHiveId) {
+                return {
+                    data: null,
+                    success: false,
+                    error: { detail: 'No active hive selected.' },
+                    message: 'You must select a hive before adding a task.',
+                }
+            }
+
+            const taskPayload: AddTaskPayload & { hive: number } = {
+                ...payload,
+                hive: this.currentHiveId,
+            }
+
+            this.isLoading = true
+            this.error = null
+
+            try {
+                const response = await api.post<ApiResponse<Task>>(
+                    '/task/',
+                    taskPayload
+                )
+                const createdTask = response.data?.data
+
+                if (createdTask) {
+                    this.hiveTasks[this.currentHiveId] ||= []
+                    this.hiveTasks[this.currentHiveId].push(createdTask)
+
+                    return {
+                        data: createdTask,
+                        success: true,
+                        message:
+                            response.data?.message ||
+                            'Task created successfully!',
+                    }
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Task creation failed.',
+                }
+            } finally {
+                this.isLoading = false
+            }
+        },
+
+        async updateTask(
+            id: number,
+            payload: Partial<NewTask>
+        ): Promise<ApiResponse<Task> | undefined> {
+            try {
+                const response = await api.put<ApiResponse<Task>>(
+                    `/task/${id}/`,
+                    payload
+                )
+                if (response.data?.data) {
+                    const updatedTask = response.data.data
+                    const tasks = this.hiveTasks[updatedTask.hive] || []
+                    this.hiveTasks[updatedTask.hive] = tasks.map((t) =>
+                        t.id === id ? updatedTask : t
+                    )
+                    return { data: updatedTask, success: true }
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Task update failed.',
+                }
+            }
+        },
+
+        async deleteTask(
+            id: number,
+            hiveId: number
+        ): Promise<ApiResponse<null> | undefined> {
+            try {
+                await api.delete(`/task/${id}/`)
+                this.hiveTasks[hiveId] = (this.hiveTasks[hiveId] || []).filter(
+                    (t) => t.id !== id
+                )
+                return {
+                    data: null,
+                    success: true,
+                    message: 'Task deleted successfully!',
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Task deletion failed.',
+                }
+            }
         },
     },
 })

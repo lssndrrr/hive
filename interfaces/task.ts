@@ -18,13 +18,11 @@ export interface TaskResponse {
     tasks: Task[]
 }
 
-export interface NewTask {
+export interface AddTaskPayload {
     name: string
     description: string
-    assignee: number | undefined
+    assignee: number | null | undefined
     date: Date | undefined
     status: Status
     priority: Priority
-    hive: number
-    created_by: number
 }

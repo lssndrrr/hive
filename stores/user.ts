@@ -22,7 +22,6 @@ export const useUserStore = defineStore('user', {
                     '/auth/login/',
                     credentials
                 )
-                console.log('HERE')
                 if (res.data.data?.user) this.user = res.data.data?.user
                 return {
                     data: res.data.data,
@@ -97,9 +96,8 @@ export const useUserStore = defineStore('user', {
             if (this.user) {
                 return
             }
-            // Try to fetch user info if not already present
             try {
-                const res = await api.get('/user/me') // Fetch user info from API or check cookie
+                const res = await api.get('/user/me')
                 if (res.data.data?.user) {
                     this.user = res.data.data.user
                 } else {
@@ -164,8 +162,8 @@ export const useUserStore = defineStore('user', {
         },
         async logout(): Promise<ApiResponse<null>> {
             try {
-                await api.get('/auth/csrf/') // Step 1: get CSRF token
-                const res = await api.post<ApiResponse<null>>('/auth/logout/') // Step 2: logout request
+                await api.get('/auth/csrf/')
+                const res = await api.post<ApiResponse<null>>('/auth/logout/')
 
                 this.user = null
                 useCookie('auth_token').value = null
@@ -195,7 +193,6 @@ export const useUserStore = defineStore('user', {
             data: Partial<AuthResponse['user']>
         ): Promise<ApiResponse<AuthResponse>> {
             try {
-                // await api.get('/auth/csrf/')
                 const res = await api.patch<ApiResponse<AuthResponse>>(
                     `/user/${this.user?.username}/`,
                     data
