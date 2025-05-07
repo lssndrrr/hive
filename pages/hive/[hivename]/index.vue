@@ -235,6 +235,8 @@ definePageMeta({
 const userStore = useUserStore()
 const route = useRoute()
 const taskStore = useHiveTaskStore()
+const hiveStore = useHiveStore()
+const hiveId = hiveStore.currentHiveId
 
 const isTaskDetailsOpen = ref(false)
 const isMemberDetailsOpen = ref(false)
@@ -242,6 +244,11 @@ const isAddMemberModalOpen = ref(false)
 const isAddTaskModalOpen = ref(false)
 const selectedTask = ref<Task | null>(null)
 const selectedMember = ref<HiveMember | null>(null)
+
+const tasksForHive = computed(() => {
+    return hiveStore.getTasksForHive(Number(route.params.hivename))
+})
+
 interface MemberOption {
     id: number | string
     name: string
@@ -283,9 +290,6 @@ const allHiveTasks = computed(() => allTasks.value) // For calendar
 const hiveMembers = computed(() => {
     return currentHiveId.value ? hiveStore.getMembers(currentHiveId.value) : []
 })
-
-const hiveStore = useHiveStore()
-const hiveId = hiveStore.currentHiveId // Get the hive ID from the store
 
 const currentHive = computed(() => {
     return currentHiveId.value

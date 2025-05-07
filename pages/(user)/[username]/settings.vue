@@ -4,7 +4,11 @@
         class="flex flex-col min-h-screen items-center justify-center space-y-3 text-primary"
         style="font-family: 'Nexa'; font-weight: 800"
     >
-        <ProfileImageUploader @update:image="userImage = $event" />
+        <ProfileImageUploader
+            @update="handleImageUpdate"
+            @remove="handleImageRemove"
+            :initial-image="userImage"
+        />
 
         <EditableField
             v-model="username"
@@ -220,6 +224,10 @@ const firstName = ref<string>(user.value?.first_name ?? '')
 const lastName = ref<string>(user.value?.last_name ?? '')
 const userImage = ref<string | null>(null)
 
+watchEffect(() => {
+    userImage.value = user.value?.profile?.profile_pic ?? null
+})
+
 const showPasswordModal = ref(false)
 const showDeleteModal = ref(false)
 
@@ -232,13 +240,21 @@ const showNew = ref(false)
 const showConfirm = ref(false)
 const router = useRouter()
 
-// Keep form in sync with user store
-watch(user, () => {
-    username.value = user.value?.username ?? ''
-    email.value = user.value?.email ?? ''
-    firstName.value = user.value?.first_name ?? ''
-    lastName.value = user.value?.last_name ?? ''
+onMounted(async () => {
+    await userStore.fetchUser()
+
+    username.value = userStore.user?.username ?? ''
+    email.value = userStore.user?.email ?? ''
+    firstName.value = userStore.user?.first_name ?? ''
+    lastName.value = userStore.user?.last_name ?? ''
 })
+
+watch(
+    () => user.value?.profile?.profile_pic,
+    (newVal) => {
+        userImage.value = newVal || null
+    }
+)
 
 definePageMeta({
     layout: 'user',
@@ -262,6 +278,27 @@ async function updateProfile() {
     }
 }
 
+async function handleImageUpdate(file: File) {
+    const response = await userStore.updateProfilePic(file)
+
+    console.log('API Response picture boang:', response)
+
+    if (response.success) {
+        const imageUrl = response.data?.user?.profile?.profile_pic || null
+
+        if (imageUrl) {
+            userImage.value = imageUrl
+            alert('Profile picture updated successfully!')
+        } else {
+            alert('Error: Profile picture URL not returned.')
+        }
+    } else {
+        alert(`Profile picture update failed: ${response.message}`)
+        // Reset to previous image if needed
+        userImage.value = user.value?.profile?.profile_pic || null
+    }
+}
+
 async function confirmDelete() {
     const response: ApiResponse<null> = await userStore.deleteAccount()
     if (response.success) {
@@ -272,6 +309,13 @@ async function confirmDelete() {
     }
     showDeleteModal.value = false
 }
+
+function handleImageRemove() {
+    userImage.value = null
+    userStore.removeProfilePic() // ← only if your store has a method to remove it from the backend
+    alert('Profile picture removed.')
+}
+
 const handlePasswordChange = async () => {
     if (newPassword.value !== confirmPassword.value) {
         alert('New passwords do not match!')
