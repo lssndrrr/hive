@@ -225,7 +225,7 @@ export const useHiveStore = defineStore('hive', {
 
         async updateTask(
             id: number,
-            payload: Partial<NewTask>
+            payload: Partial<AddTaskPayload>
         ): Promise<ApiResponse<Task> | undefined> {
             try {
                 const response = await api.put<ApiResponse<Task>>(
