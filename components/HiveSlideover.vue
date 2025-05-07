@@ -12,7 +12,7 @@
             <ul class="space-y-1">
                 <li v-for="hive in hives" :key="hive.id">
                     <NuxtLink
-                    :to="`/hives/${hive.slug || hive.id}`"
+                    :to="`/hive/${hive.slug || hive.id}`"
                     class="flex items-center justify-between p-2 rounded hover:bg-[#A86523]/10 text-[#A86523] text-sm group"
                     active-class="bg-[#A86523]/10 font-semibold"
                     >
