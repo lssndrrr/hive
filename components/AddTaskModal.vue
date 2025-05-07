@@ -160,7 +160,7 @@ const df = new DateFormatter('en-US', {
     dateStyle: 'medium',
 })
 
-const modelValue = shallowRef(new CalendarDate(2022, 1, 10))
+const modelValue = shallowRef(new CalendarDate(2025, 5, 10))
 
 const props = defineProps<{
     isOpen: boolean
