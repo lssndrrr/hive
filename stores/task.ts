@@ -1,7 +1,8 @@
 import { defineStore } from 'pinia'
 import api from '~/api/api'
-import type { Task, TaskResponse } from '~/interfaces/task'
+import type { Task, NewTask, TaskResponse } from '~/interfaces/task'
 import type { ApiResponse, ApiError } from '~/interfaces/common'
+import { useUserStore } from '@/stores/user'
 
 export const useUserTaskStore = defineStore('userTasks', {
     state: () => ({
@@ -9,13 +10,18 @@ export const useUserTaskStore = defineStore('userTasks', {
         isLoading: false,
     }),
     actions: {
-        async fetchUserTasks(userId: number) {
+        async fetchUserTasks() {
             this.isLoading = true
-            const res = await api.get<ApiResponse<Task[]>>(
-                `/task/?assignee=${userId}`
-            )
-            this.tasks = res.data?.data || []
-            this.isLoading = false
+            try {
+                const res = await api.get<ApiResponse<Task[]>>('/task/')
+                console.log('Raw API response:', res.data)
+                console.log('Fetched user tasks:', res.data?.data)
+                this.tasks = res.data?.data || []
+            } catch (error) {
+                console.error('Error fetching user tasks:', error)
+            } finally {
+                this.isLoading = false
+            }
         },
         clear() {
             this.tasks = []
@@ -36,6 +42,27 @@ export const useHiveTaskStore = defineStore('hiveTasks', {
             )
             this.tasks = res.data?.data || []
             this.isLoading = false
+        },
+        async createHiveTask(task: NewTask) {
+            const userStore = useUserStore()
+
+            task.assignee = userStore.user?.id || 1
+            task.date = task.date || new Date()
+
+            console.log('Creating:', task)
+            try {
+                const res = await api.post<ApiResponse<Task>>('/task/', {
+                    // POST request to /task/
+                    ...task,
+                    due_date: task.date?.toISOString().split('T')[0], // convert to 'YYYY-MM-DD' if needed
+                })
+                if (res.data?.data) {
+                    console.log('New task:', res.data.data)
+                    this.tasks.push(res.data.data)
+                }
+            } catch (error) {
+                console.error('Failed to create task:', error)
+            }
         },
         clear() {
             this.tasks = []
