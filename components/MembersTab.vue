@@ -18,14 +18,29 @@
                 <span class="text-sm font-medium truncate w-full text-center">{{ member.username }}</span>
             </div>
             
-            <button
-                @click="addMember"
-                class="bg-[#FAD59A] text-[#A86523] rounded-lg p-3 shadow hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center aspect-square hover:bg-[#ffd7af] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A86523] cursor-pointer"
-                aria-label="Add new member"
-            >
-                <Icon name="i-heroicons-plus-20-solid" class="w-8 h-8" />
-            </button>
+            <UModal title="Add Member" v-model:open="isAddMemberModalOpen" :ui="{ footer: 'justify-end' }" color="primary">
+                <UButton
+                    color="primary"
+                    variant="ghost"
+                    size="xs"
+                    icon="i-heroicons-plus-20-solid"
+                    class="bg-[#FAD59A] text-[#A86523] rounded-lg p-3 shadow hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center aspect-square hover:bg-[#ffd7af] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A86523] cursor-pointer"
+                    @click="addMember"
+                />
 
+                <template #body>
+                    <UInput 
+                        placeholder="Enter username"
+                        color="primary"
+                        class="w-full"
+                    />
+                </template>
+
+                <template #footer>
+                    <UButton label="Cancel" color="primary" variant="ghost" @click="isAddMemberModalOpen = false" />
+                    <UButton label="Send Invite" color="primary" @click="submitNewMember" />
+                </template>
+            </UModal>
         </div>
     </div>
 </template>
@@ -41,6 +56,8 @@ members: {
 }
 });
 
+const isAddMemberModalOpen = ref(false)
+
 const emit = defineEmits(['add-member-clicked', 'view-member-details']);
 
 function addMember() {
@@ -53,6 +70,16 @@ function viewMember(member: HiveMember) {
     emit('view-member-details', member);
 }
 
+function handleAddNewMember() {
+    console.log('Handling add new member...')
+    isAddMemberModalOpen.value = true
+}
+
+function submitNewMember() {
+    console.log('Submitting new member...')
+    // Add logic here to gather form data and send it to your backend/API
+    isAddMemberModalOpen.value = false
+}
 </script>
   
 

@@ -34,7 +34,17 @@
                 </li>
             </ul>
 
-            <li class="flex justify-center">
+            <li class="flex flex-col justify-center space-y-4">
+                <button 
+                    @click="" 
+                    aria-label="Notifications"
+                    class="rounded-lg p-1.5 hover:bg-[#b07538]"
+                >
+                    <Icon
+                        name="bxs:bell"
+                        class="w-8 h-8 cursor-pointer"
+                    />
+                </button>
                 <button @click="logout" aria-label="Logout">
                     <Icon
                         name="heroicons:arrow-left-on-rectangle"

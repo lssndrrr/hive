@@ -215,7 +215,6 @@ definePageMeta({
                         things done.
                     </p>
                 </div>
-                <Icon name="bxs:bell" class="bg-primary w-6 h-6" />
             </div>
 
             <div>
