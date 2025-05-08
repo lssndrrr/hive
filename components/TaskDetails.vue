@@ -143,6 +143,7 @@ import type { PropType } from 'vue'
 import { format, isValid } from 'date-fns' // Import isValid
 import type { Task } from '~/interfaces/task'
 import type { HiveMember } from '~/interfaces/hive'
+import { useHiveStore } from '~/stores/hive'
 import {
     CalendarDate,
     DateFormatter,
@@ -209,6 +210,9 @@ const statusOptions = ref([
     { label: 'Done', value: 'done' },
 ])
 
+const hiveStore = useHiveStore()
+const isConfirmDeleteModalOpen = ref(false)
+
 // --- Methods ---
 function closePanel() {
     emit('close')
@@ -273,9 +277,18 @@ function clearDate(closePopover: () => void) {
     closePopover()
 }
 
-function deleteTask() {
-    emit('delete-task', props.task.id)
-    closePanel()
+async function deleteTask() {
+    isConfirmDeleteModalOpen.value = true
+    const confirmed = confirm('Are you sure you want to delete this task?')
+    if (!confirmed) return
+
+    const response = await hiveStore.deleteTask(props.task.id, props.task.hive)
+    if (response?.success) {
+        emit('delete-task', props.task.id)
+        emit('close') // Optionally close the panel after deletion
+    } else {
+        alert('Failed to delete task: ' + response?.message)
+    }
 }
 
 // Format date for display, handle undefined/null
