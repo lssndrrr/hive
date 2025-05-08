@@ -138,6 +138,7 @@
                                 :todo-tasks="todoTasks"
                                 :in-progress-tasks="inProgressTasks"
                                 :done-tasks="doneTasks"
+                                :overdue-tasks="overdueTasks"
                                 @view-task-details="showTaskDetails"
                                 @add-task="handleAddTask"
                             />
