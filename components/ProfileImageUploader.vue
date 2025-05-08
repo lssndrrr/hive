@@ -7,10 +7,11 @@
             <div class="circle-container">
                 <img
                     v-if="imageUrl"
-                    :src="imageUrl"
-                    alt="Profile Picture"
+                    src="/img/bee.jpg"
+                    alt=""
                     class="profile-image"
                 />
+
                 <div v-else class="icon-wrapper">
                     <UIcon
                         name="i-heroicons-user"
@@ -57,7 +58,7 @@
                                     color="error"
                                     size="xl"
                                     variant="soft"
-                                    @click="removeImage"
+                                    @click="handleRemove"
                                     style="
                                         font-family: 'Nexa';
                                         font-weight: 800;
@@ -83,34 +84,51 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
+import { useUserStore } from '~/stores/user'
 
-const emit = defineEmits(['update:image'])
+const props = defineProps<{
+    initialImage?: string | null
+}>()
 
-const imageUrl = ref<string | null>(null)
+const emit = defineEmits<{
+    (e: 'update', file: File): void
+    (e: 'remove'): void // New remove event
+}>()
+
+const imageUrl = ref<string | null>(props.initialImage ?? null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
-function handleImageChange(event: Event) {
+const userStore = useUserStore()
+const user = computed(() => userStore.user)
+
+watch(
+    () => props.initialImage,
+    (newVal) => {
+        imageUrl.value = newVal ?? null
+    }
+)
+
+async function handleImageChange(event: Event) {
     const fileInputElement = event.target as HTMLInputElement
     if (fileInputElement?.files?.[0]) {
         const file = fileInputElement.files[0]
-        const reader = new FileReader()
+        const url = URL.createObjectURL(file) // Local preview URL
+        imageUrl.value = url
+        emit('update', file)
 
-        reader.onloadend = () => {
-            imageUrl.value = reader.result as string
-            emit('update:image', imageUrl.value)
-        }
-
-        reader.readAsDataURL(file)
+        // After image upload, refetch user data to reflect changes
+        await userStore.fetchUser() // This assumes you have a fetchUser method that updates the user data
     }
 }
 
-function removeImage() {
+function handleRemove() {
     imageUrl.value = null
-    emit('update:image', null)
-    if (fileInput.value) {
-        fileInput.value.value = ''
-    }
+    if (fileInput.value) fileInput.value.value = ''
+    emit('remove')
+
+    // After removal, refetch user data to update UI
+    userStore.fetchUser()
 }
 </script>
 

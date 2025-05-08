@@ -7,11 +7,7 @@
                 :to="`/${userStore.user?.username}/settings`"
                 aria-label="User Settings"
             >
-                <UAvatar
-                    src="https://avatars.githubusercontent.com/u/739984?v=4"
-                    alt="User Avatar"
-                    size="lg"
-                />
+                <UAvatar src="/img/bee.jpg" alt="User Avatar" size="lg" />
             </NuxtLink>
         </div>
 
@@ -96,7 +92,6 @@ a.router-link-exact-active :deep(svg) {
 <script setup lang="ts">
 const userStore = useUserStore()
 const toast = useToast()
-const router = useRouter()
 
 const logout = async () => {
     const res = await userStore.logout()
@@ -107,7 +102,6 @@ const logout = async () => {
             class: '!bg-white !text-green-600',
             color: 'success',
         })
-        // router.push('/login')
     } else {
         toast.add({
             description: res.message,
