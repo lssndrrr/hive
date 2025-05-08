@@ -222,13 +222,12 @@ export const useHiveStore = defineStore('hive', {
                 this.isLoading = false
             }
         },
-
         async updateTask(
             id: number,
             payload: Partial<AddTaskPayload>
         ): Promise<ApiResponse<Task> | undefined> {
             try {
-                const response = await api.put<ApiResponse<Task>>(
+                const response = await api.patch<ApiResponse<Task>>(
                     `/task/${id}/`,
                     payload
                 )
@@ -241,6 +240,7 @@ export const useHiveStore = defineStore('hive', {
                     return { data: updatedTask, success: true }
                 }
             } catch (err: any) {
+                console.error('Error during task update:', err) // Log the error to inspect it
                 const apiError: ApiError = err.response?.data || {
                     detail: 'Unknown error',
                 }
@@ -252,7 +252,6 @@ export const useHiveStore = defineStore('hive', {
                 }
             }
         },
-
         async deleteTask(
             id: number,
             hiveId: number
