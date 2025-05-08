@@ -4,11 +4,16 @@
         class="flex flex-col min-h-screen items-center justify-center space-y-3 text-primary"
         style="font-family: 'Nexa'; font-weight: 800"
     >
-        <ProfileImageUploader
-            @update="handleImageUpdate"
-            @remove="handleImageRemove"
-            :initial-image="userImage"
-        />
+        <div
+            class="flex justify-center items-center flex-col space-y-4 relative"
+            style="padding-bottom: 30px"
+        >
+            <div class="parent-container">
+                <div class="circle-container">
+                    <img src="/img/bee.jpg" alt="" class="profile-image" />
+                </div>
+            </div>
+        </div>
 
         <EditableField
             v-model="username"
@@ -208,6 +213,23 @@
     </div>
 </template>
 
+<style>
+.parent-container {
+    position: relative;
+    width: 150px;
+    height: 150px;
+}
+.circle-container {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    overflow: hidden;
+    background-color: #f0f0f0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+</style>
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { useUserStore } from '~/stores/user'
@@ -223,10 +245,6 @@ const email = ref<string>(user.value?.email ?? '')
 const firstName = ref<string>(user.value?.first_name ?? '')
 const lastName = ref<string>(user.value?.last_name ?? '')
 const userImage = ref<string | null>(null)
-
-watchEffect(() => {
-    userImage.value = user.value?.profile?.profile_pic ?? null
-})
 
 const showPasswordModal = ref(false)
 const showDeleteModal = ref(false)
@@ -248,13 +266,6 @@ onMounted(async () => {
     firstName.value = userStore.user?.first_name ?? ''
     lastName.value = userStore.user?.last_name ?? ''
 })
-
-watch(
-    () => user.value?.profile?.profile_pic,
-    (newVal) => {
-        userImage.value = newVal || null
-    }
-)
 
 definePageMeta({
     layout: 'user',
@@ -278,27 +289,6 @@ async function updateProfile() {
     }
 }
 
-async function handleImageUpdate(file: File) {
-    const response = await userStore.updateProfilePic(file)
-
-    console.log('API Response picture boang:', response)
-
-    if (response.success) {
-        const imageUrl = response.data?.user?.profile?.profile_pic || null
-
-        if (imageUrl) {
-            userImage.value = imageUrl
-            alert('Profile picture updated successfully!')
-        } else {
-            alert('Error: Profile picture URL not returned.')
-        }
-    } else {
-        alert(`Profile picture update failed: ${response.message}`)
-        // Reset to previous image if needed
-        userImage.value = user.value?.profile?.profile_pic || null
-    }
-}
-
 async function confirmDelete() {
     const response: ApiResponse<null> = await userStore.deleteAccount()
     if (response.success) {
@@ -308,12 +298,6 @@ async function confirmDelete() {
         alert(`Delete failed: ${response.message}`)
     }
     showDeleteModal.value = false
-}
-
-function handleImageRemove() {
-    userImage.value = null
-    userStore.removeProfilePic() // ← only if your store has a method to remove it from the backend
-    alert('Profile picture removed.')
 }
 
 const handlePasswordChange = async () => {
