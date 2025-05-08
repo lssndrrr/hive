@@ -23,6 +23,22 @@
         <!-- Main Content -->
         <div class="w-100 flex-grow overflow-y-auto px-14 py-4 space-y-2">
             <div class="flex flex-col gap-4">
+                <UInput
+                    v-model="editedTaskName"
+                    placeholder="Task Name"
+                    color="info"
+                    variant="solid"
+                    size="md"
+                    class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
+                />
+                <UInput
+                    v-model="editedTaskDescription"
+                    placeholder="Task Description"
+                    color="info"
+                    variant="solid"
+                    size="md"
+                    class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
+                />
                 <USelect
                     v-model="currentStatus"
                     :items="statusOptions"
@@ -110,21 +126,23 @@ import {
     getLocalTimeZone,
 } from '@internationalized/date'
 
-const df = new DateFormatter('en-US', {
-    dateStyle: 'medium',
-})
-
-const modelValue = shallowRef(new CalendarDate(2025, 5, 10))
-
-const userStore = useUserStore()
-const hiveStore = useHiveStore()
-const isConfirmDeleteModalOpen = ref(false)
 const props = defineProps({
     task: {
         type: Object as PropType<Task>,
         required: true,
     },
 })
+
+const df = new DateFormatter('en-US', {
+    dateStyle: 'medium',
+})
+
+// const modelValue = shallowRef(new CalendarDate(2025, 5, 10))
+const modelValue = shallowRef<CalendarDate | null>(null)
+const editedTaskName = ref(props.task.name)
+const editedTaskDescription = ref(props.task.description)
+const hiveStore = useHiveStore()
+const isConfirmDeleteModalOpen = ref(false)
 
 const emit = defineEmits([
     'close',
@@ -149,6 +167,15 @@ const assignedMember = ref<number | null>(props.task.assignee ?? null)
 const membersOptions = ref<{ label: string; value: number | null }[]>([])
 
 onMounted(() => {
+    if (props.task.due_date) {
+        const date = new Date(props.task.due_date)
+        modelValue.value = new CalendarDate(
+            date.getFullYear(),
+            date.getMonth() + 1,
+            date.getDate()
+        )
+    }
+
     const hiveId = props.task.hive
     const members = hiveStore.getMembers(hiveId)
     console.log('Members from hiveStore:', members)
@@ -195,6 +222,14 @@ async function saveTaskChanges() {
 
     if (modelValue.value) {
         payload.due_date = modelValue.value.toString()
+    }
+
+    if (editedTaskName.value !== props.task.name) {
+        payload.name = editedTaskName.value
+    }
+
+    if (editedTaskDescription.value !== props.task.description) {
+        payload.description = editedTaskDescription.value
     }
 
     console.log('Assigned Member ID:', assignedMember.value)
