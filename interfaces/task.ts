@@ -21,8 +21,8 @@ export interface TaskResponse {
 export interface AddTaskPayload {
     name: string
     description: string
-    assignee: number | null | undefined
-    date: Date | undefined
+    assignee: number | null
+    due_date: string
     status: Status
     priority: Priority
 }

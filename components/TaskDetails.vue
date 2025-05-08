@@ -29,10 +29,10 @@
                     option-attribute="label"
                     value-attribute="value"
                     placeholder="Select Status"
-                    color="secondary"
+                    color="solid"
                     variant="solid"
-                    size="sm"
-                    class="w-32 font-semibold bg-white text-secondary border-secondary"
+                    size="md"
+                    class="w-33 font-semibold bg-info text-primary border-secondary"
                 />
                 <USelect
                     v-model="assignedMember"
@@ -42,9 +42,28 @@
                     placeholder="Assign Member"
                     color="secondary"
                     variant="solid"
-                    size="sm"
-                    class="w-32 font-semibold bg-white text-secondary border-secondary"
+                    size="md"
+                    class="w-33 font-semibold bg-info text-primary border-secondary"
                 />
+                <UPopover>
+                    <UButton
+                        color="secondary"
+                        variant="solid"
+                        icon="i-lucide-calendar"
+                        class="w-33 font-semibold bg-info text-primary border-secondary"
+                    >
+                        {{
+                            modelValue
+                                ? df.format(
+                                      modelValue.toDate(getLocalTimeZone())
+                                  )
+                                : 'Select a date'
+                        }}
+                    </UButton>
+                    <template #content>
+                        <UCalendar v-model="modelValue" class="p-2" />
+                    </template>
+                </UPopover>
             </div>
         </div>
 
@@ -54,6 +73,7 @@
                 <UButton
                     color="primary"
                     variant="solid"
+                    icon="material-symbols:save-outline-rounded"
                     size="sm"
                     class="text-white"
                     @click="saveTaskChanges"
@@ -62,11 +82,11 @@
                 </UButton>
             </div>
             <UButton
-                color="neutral"
-                variant="ghost"
+                color="secondary"
+                variant="solid"
                 icon="material-symbols:delete-outline-rounded"
                 size="sm"
-                class="text-white hover:bg-primary hover:text-white"
+                class="text-white"
                 @click="deleteTask"
             >
                 Delete Task
@@ -84,11 +104,21 @@ import type { Task, AddTaskPayload, Status } from '~/interfaces/task'
 import type { HiveMember } from '~/interfaces/hive'
 import { useHiveStore } from '~/stores/hive'
 
+import {
+    CalendarDate,
+    DateFormatter,
+    getLocalTimeZone,
+} from '@internationalized/date'
+
+const df = new DateFormatter('en-US', {
+    dateStyle: 'medium',
+})
+
+const modelValue = shallowRef(new CalendarDate(2025, 5, 10))
+
 const userStore = useUserStore()
 const hiveStore = useHiveStore()
-const { user } = storeToRefs(userStore)
 const isConfirmDeleteModalOpen = ref(false)
-
 const props = defineProps({
     task: {
         type: Object as PropType<Task>,
@@ -114,7 +144,6 @@ const statusOptions = [
 ] as const
 
 const currentStatus = ref<Status>(props.task.status)
-// const assignedMember = ref<number | null>(props.task.assignee || null)
 const assignedMember = ref<number | null>(props.task.assignee ?? null)
 
 const membersOptions = ref<{ label: string; value: number | null }[]>([])
@@ -127,8 +156,8 @@ onMounted(() => {
     membersOptions.value = [
         { label: 'Unassigned', value: null },
         ...members.map((member) => ({
-            label: member.user.username, // this is what is displayed
-            value: member.user.id, // this is what's stored in assignedMember
+            label: member.user.username,
+            value: member.user.id,
         })),
     ]
 
@@ -147,7 +176,7 @@ async function deleteTask() {
     const response = await hiveStore.deleteTask(props.task.id, props.task.hive)
     if (response?.success) {
         emit('delete-task', props.task.id)
-        emit('close') // Optionally close the panel after deletion
+        emit('close')
     } else {
         alert('Failed to delete task: ' + response?.message)
     }
@@ -160,9 +189,12 @@ async function saveTaskChanges() {
         payload.status = currentStatus.value
     }
 
-    // Only send if assigned user changed
     if (assignedMember.value !== props.task.assignee) {
         payload.assignee = assignedMember.value
+    }
+
+    if (modelValue.value) {
+        payload.due_date = modelValue.value.toString()
     }
 
     console.log('Assigned Member ID:', assignedMember.value)
@@ -178,6 +210,8 @@ async function saveTaskChanges() {
     if (response?.success) {
         alert('Task updated successfully!')
         emit('close')
+    } else {
+        alert('Failed to update task!')
     }
 }
 </script>

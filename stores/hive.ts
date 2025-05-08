@@ -231,16 +231,27 @@ export const useHiveStore = defineStore('hive', {
                     `/task/${id}/`,
                     payload
                 )
-                if (response.data?.data) {
+                console.log('API Response:', response)
+
+                if (response?.data?.data) {
                     const updatedTask = response.data.data
                     const tasks = this.hiveTasks[updatedTask.hive] || []
                     this.hiveTasks[updatedTask.hive] = tasks.map((t) =>
                         t.id === id ? updatedTask : t
                     )
                     return { data: updatedTask, success: true }
+                } else {
+                    console.warn(
+                        'API Response does not contain expected data field.'
+                    )
+                    return {
+                        data: null,
+                        success: false,
+                        message: 'No data returned',
+                    }
                 }
             } catch (err: any) {
-                console.error('Error during task update:', err) // Log the error to inspect it
+                console.error('Error during task update:', err)
                 const apiError: ApiError = err.response?.data || {
                     detail: 'Unknown error',
                 }
