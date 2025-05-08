@@ -12,12 +12,11 @@
             <ul class="space-y-1">
                 <li v-for="hive in hives" :key="hive.id">
                     <NuxtLink
-                    :to="`/hive/${hive.slug || hive.id}`"
+                    :to="`/hive/${hive.id}`"
                     class="flex items-center justify-between p-2 rounded hover:bg-[#A86523]/10 text-[#A86523] text-sm group"
                     active-class="bg-[#A86523]/10 font-semibold"
                     >
                         <span class="flex items-center space-x-2">
-                            <span v-if="hive.isActive" class="w-2 h-2 rounded-full bg-[#E9A319]"></span>
                             <span>{{ hive.name }}</span>
                         </span>
 
@@ -40,7 +39,7 @@
                                         size="xs"
                                         icon="material-symbols:delete-rounded"
                                         class="hover:bg-[#FCEFCB] bg-[#FFF8E5] cursor-pointer"
-                                        aria-label="Delete Hive"
+                                        @click="requestDeleteHiveConfirmation(hive)"
                                     />
 
                                     <template #body>
@@ -78,14 +77,15 @@
 import { ref, type PropType } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { useHiveStore } from '~/stores/hive'; 
+import type { Hive } from '~/interfaces/hive';
 import { useToast } from '#imports';
 
-interface Hive {
-    id: string | number
-    name: string
-    slug?: string; // For cleaner URL
-    isActive?: boolean; // Example property
-}
+// interface Hive {
+//     id: string | number
+//     name: string
+//     slug?: string; // For cleaner URL
+//     isActive?: boolean; // Example property
+// }
 
 const props = defineProps({
     isOpen: {
@@ -114,36 +114,50 @@ function requestDeleteHiveConfirmation(hive: Hive) {
 }
 
 async function confirmDeleteHive() {
-    if (!hiveToDelete.value) return;
-
-    const deletedHiveId = hiveToDelete.value.id;
-    const deletedHiveName = hiveToDelete.value.name; // For toast message
-
-    try {
-        await hiveStore.deleteHive(deletedHiveId);
-        isConfirmDeleteModalOpen.value = false;
-        toast.add({
-            title: 'Hive Deleted',
-            description: `Hive "${deletedHiveName}" was successfully deleted.`,
-            color: 'success',
-            icon: 'i-heroicons-check-circle'
-        });
-
-        // Check if the currently viewed hive is the one deleted
-        const currentRouteHiveIdentifier = route.params.hivename;
-        if (currentRouteHiveIdentifier === String(deletedHiveId) || currentRouteHiveIdentifier === hiveToDelete.value.slug) {
-            router.push('/'); // Or to a more appropriate default page like '/dashboard' or the first hive
-        }
-        hiveToDelete.value = null; // Reset
-    } catch (error: any) {
-        console.error("Failed to delete hive:", error);
+    if (!hiveToDelete.value) {
+        return;
+    }
+    const hiveIdToDelete = hiveToDelete.value.id;
+    const hiveNameToDelete = hiveToDelete.value.name;
+    const numericHiveId = Number(hiveIdToDelete);
+    
+    if (isNaN(numericHiveId)) {
+        console.error("Invalid Hive ID for deletion:", hiveIdToDelete);
         toast.add({
             title: 'Deletion Failed',
-            description: hiveStore.error || error.message || 'Could not delete hive.',
+            description: 'Invalid hive identifier.',
             color: 'error',
             icon: 'i-heroicons-x-circle'
         });
-        isConfirmDeleteModalOpen.value = false; // Optionally keep open or provide retry
+        isConfirmDeleteModalOpen.value = false;
+        return;
+    }
+
+    const response = await hiveStore.deleteHive(numericHiveId);
+    isConfirmDeleteModalOpen.value = false;
+
+    if (response && response.success) {
+        toast.add({
+            title: 'Hive Deleted',
+            description: response.message || `Hive "${hiveNameToDelete}" was successfully deleted.`,
+            color: 'success', // Nuxt UI typically uses color names like 'green'
+            icon: 'i-heroicons-check-circle'
+        });
+
+        // Navigation logic (if the current hive was deleted)
+        const currentRouteHiveIdentifier = route.params.hivename;
+        if (currentRouteHiveIdentifier === String(hiveIdToDelete)) {
+            router.push('/hive');
+        }
+        hiveToDelete.value = null;
+    } else {
+        console.error("Failed to delete hive from component:", response?.message || response?.error);
+        toast.add({
+            title: 'Deletion Failed',
+            description: response?.message || 'Could not delete hive. Please try again.',
+            color: 'error',
+            icon: 'i-heroicons-x-circle'
+        });
     }
 }
 
