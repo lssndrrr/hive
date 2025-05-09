@@ -289,5 +289,32 @@ export const useHiveStore = defineStore('hive', {
                 }
             }
         },
+        async inviteMember(
+            username: string
+        ): Promise<ApiResponse<null> | undefined> {
+            try {
+                const payload = {
+                    username,
+                    hive: this.currentHiveId,
+                }
+                await api.post('/user/invite_member/', payload)
+
+                return {
+                    data: null,
+                    success: true,
+                    message: 'Member invited successfully!',
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Member invitation failed.',
+                }
+            }
+        },
     },
 })
