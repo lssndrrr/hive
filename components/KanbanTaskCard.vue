@@ -1,56 +1,68 @@
 <template>
-    <UCard
-        variant="soft"
-        class="mb-2 bg-[#FAD59A] text-[#A86523] cursor-pointer"
-        @click="viewDetails"
-    >
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="text-md font-bold text-[#A86523]">{{ task.name }}</h3>
-        </div>
+    <div class="relative mb-5">
+        <!-- Make this container relative -->
+        <!-- Overlapping priority badge -->
+        <p
+            class="absolute -top-2 right-2 z-10 text-sm font-bold bg-secondary text-info px-2 py-1 rounded-md shadow"
+        >
+            {{ displayPriority }}
+        </p>
 
-        <div class="flex justify-between items-center text-xs text-[#A86523]">
-            <div class="flex items-center">
-                <Icon
-                    name="material-symbols:calendar-month-outline-rounded"
-                    class="w-4 h-4 mr-1 bg-[#A86523]"
-                />
-                <span>{{ formatDate(task.due_date) }}</span>
+        <!-- The card -->
+        <UCard
+            variant="soft"
+            class="bg-[#FAD59A] text-[#a18c76] cursor-pointer"
+            @click="emit('view-task-details', task)"
+        >
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-md font-bold text-[#A86523]">
+                    {{ task.name }}
+                </h3>
             </div>
 
-            <div class="flex items-center">
-                <Icon
-                    name="material-symbols:hive-outline-rounded"
-                    class="w-4 h-4 mr-1 bg-[#A86523]"
-                />
-                <span>{{ task.hive }}</span>
-            </div>
+            <div
+                class="flex justify-between items-center text-xs text-[#A86523]"
+            >
+                <div class="flex items-center">
+                    <Icon
+                        name="material-symbols:calendar-month-outline-rounded"
+                        class="w-4 h-4 mr-1 bg-[#A86523]"
+                    />
+                    <span>{{ formatDate(task.due_date) }}</span>
+                </div>
 
-            <div class="flex items-center">
-                <UAvatar
-                    :src="'/img/bee.jpg'"
-                    alt="Bee"
-                    size="2xs"
-                    icon="i-heroicons-user-circle"
-                    class="bg-[#A86523] text-[#FFF8E5]"
-                />
-                <span v-if="!assigneeAvatarUrl" class="ml-1 truncate">{{
-                    assigneeName || 'Unassigned'
-                }}</span>
+                <div class="flex items-center">
+                    <Icon
+                        name="material-symbols:hive-outline-rounded"
+                        class="w-4 h-4 mr-1 bg-[#A86523]"
+                    />
+                    <span>{{ task.hive }}</span>
+                </div>
+
+                <div class="flex items-center">
+                    <UAvatar
+                        :src="'/img/bee.jpg'"
+                        alt="Bee"
+                        size="2xs"
+                        icon="i-heroicons-user-circle"
+                        class="bg-[#A86523] text-[#FFF8E5]"
+                    />
+                    <span v-if="!assigneeAvatarUrl" class="ml-1 truncate">{{
+                        assigneeName || 'Unassigned'
+                    }}</span>
+                </div>
             </div>
-        </div>
-    </UCard>
+        </UCard>
+    </div>
 </template>
 
 <script setup lang="ts">
 import { format, isValid } from 'date-fns'
 import type { PropType } from 'vue'
 import type { Task } from '~/interfaces/task'
-import type { HiveMember } from '~/interfaces/hive'
-import { useUserTaskStore } from '~/stores/task'
 import { useHiveStore } from '~/stores/hive'
 
 const hiveStore = useHiveStore()
-
 const assignee = computed(() => {
     const hiveMembers = hiveStore.getMembers(props.task.hive)
     return hiveMembers.find((m) => m.user.id === props.task.assignee) || null
@@ -77,32 +89,24 @@ const props = defineProps({
     },
 })
 
-const emit = defineEmits(['view-details', 'edit-task', 'delete-task'])
+const emit = defineEmits(['view-task-details', 'edit-task', 'delete-task'])
 
 function viewDetails() {
-    emit('view-details', props.task)
+    emit('view-task-details', props.task)
 }
 
-const taskOptions = [
-    [
-        {
-            label: 'Edit',
-            icon: 'i-heroicons-pencil-square-20-solid',
-            click: () => {
-                console.log('Edit task:', props.task.id)
-            }, // Placeholder action
-        },
-    ],
-    [
-        {
-            label: 'Delete',
-            icon: 'i-heroicons-trash-20-solid',
-            click: () => {
-                console.log('Delete task:', props.task.id)
-            }, // Placeholder action
-        },
-    ],
-]
+const displayPriority = computed(() => {
+    switch (props.task.priority) {
+        case 'H':
+            return 'High'
+        case 'M':
+            return 'Medium'
+        case 'L':
+            return 'Low'
+        default:
+            return 'Unknown'
+    }
+})
 
 const formatDate = (dateString: string | null | undefined): string => {
     if (!dateString) return 'No date' // Handle null or undefined
