@@ -1,17 +1,13 @@
 <template>
     <div
         v-if="isOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 p-4"
+        class="fixed inset-0 z-50 flex items-center justify-center p-4"
         @click.self="close"
     >
-        <UCard
-            class="w-full max-w-md bg-primary text-primary"
-            @click.stop
-            variant="soft"
-        >
+        <UCard class="w-full max-w-md bg-primary" @click.stop variant="outline">
             <template #header>
                 <div class="flex justify-center items-center">
-                    <h2 class="text-lg font-semibold text-white">
+                    <h2 class="text-lg font-semibold text-info">
                         Add New Task
                     </h2>
                 </div>
@@ -31,6 +27,7 @@
                     autoresize
                     class="w-full text-info"
                 />
+
                 <div class="flex flex-row gap-2">
                     <!-- Status Select -->
                     <USelectMenu
@@ -47,7 +44,6 @@
                                 {{ status?.name || 'Select status' }}
                             </span>
                         </template>
-
                         <template #item="{ item }">
                             <span class="text-white">{{ item.name }}</span>
                         </template>
@@ -59,7 +55,6 @@
                         :items="priorityOptions"
                         value-attribute="id"
                         option-attribute="name"
-                        placeholder="Select priority"
                         class="w-48"
                     >
                         <template #default>
@@ -77,28 +72,19 @@
                     </USelectMenu>
                 </div>
 
-                <USelectMenu
-                    v-model="selectedMember"
-                    :items="members"
-                    option-attribute="name"
-                    value-attribute="id"
-                    placeholder="Select member"
-                    searchable
-                    class="w-full text-white"
-                >
-                    <template #default>
-                        <span
-                            :class="
-                                selectedMember ? 'text-white' : 'text-white'
-                            "
-                        >
-                            {{ selectedMember?.name || 'Assign member' }}
-                        </span>
-                    </template>
-                    <template #item="{ item }">
-                        <span class="text-white">{{ item.name }}</span>
-                    </template>
-                </USelectMenu>
+                <USelect
+                    v-if="membersOptions.length > 0"
+                    v-model="assignedMember"
+                    :items="membersOptions"
+                    option-attribute="label"
+                    value-attribute="value"
+                    placeholder="Assign Member"
+                    color="secondary"
+                    variant="solid"
+                    size="md"
+                    class="w-full font-semibold bg-secondary text-info border-secondary"
+                />
+
                 <UPopover>
                     <UButton
                         color="secondary"
@@ -127,16 +113,18 @@
                         variant="outline"
                         class="text-info"
                         @click="close"
-                        >Cancel</UButton
                     >
+                        Cancel
+                    </UButton>
                     <UButton
                         color="neutral"
                         variant="outline"
                         class="text-info"
                         :disabled="!task.name"
                         @click="submit"
-                        >Add Task</UButton
                     >
+                        Add Task
+                    </UButton>
                 </div>
             </template>
         </UCard>
@@ -144,35 +132,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted, shallowRef, watchEffect } from 'vue'
 import { useToast } from '#imports'
-import type { NewTask, Status, Priority } from '@/interfaces/task'
+import type { AddTaskPayload, Task, Priority, Status } from '@/interfaces/task'
+import { useHiveStore } from '~/stores/hive'
+import { useUserStore } from '~/stores/user'
 import {
     CalendarDate,
     DateFormatter,
     getLocalTimeZone,
 } from '@internationalized/date'
 
-const userStore = useUserStore()
-const toast = useToast()
-
-const df = new DateFormatter('en-US', {
-    dateStyle: 'medium',
+const props = defineProps({
+    isOpen: Boolean,
+    task: {
+        type: Object as PropType<Task>,
+        required: true,
+    },
 })
 
-const modelValue = shallowRef(new CalendarDate(2025, 5, 10))
-
-const props = defineProps<{
-    isOpen: boolean
-    members: { id: number | string; name: string }[]
-    createdBy: number
-}>()
-
-const selectedMember = ref<{ id: string | number; name: string } | undefined>(
-    undefined
-)
 const emit = defineEmits(['close', 'submit'])
 
+const toast = useToast()
+const userStore = useUserStore()
+const hiveStore = useHiveStore()
+
+const df = new DateFormatter('en-US', { dateStyle: 'medium' })
+
+const assignedMember = ref<number | null>(props.task.assignee ?? null)
+const membersOptions = ref<{ label: string; value: number | null }[]>([])
+
+const modelValue = shallowRef<CalendarDate | null>(null)
 const statusOptions = [
     { id: 'TD', name: 'To Do' },
     { id: 'IP', name: 'In Progress' },
@@ -189,39 +179,86 @@ const priorityOptions = [
 const status = ref(statusOptions[0])
 const priority = ref(priorityOptions[1])
 
-const task = ref<NewTask>({
+const task = ref<AddTaskPayload & { hive: number; created_by: number }>({
     name: '',
     description: '',
-    assignee: undefined,
-    date: undefined,
-    status: status.value.id,
-    priority: priority.value.id,
+    assignee: null,
+    due_date: '',
+    status: 'TD',
+    priority: 'M',
     hive: 1,
     created_by: 0,
 })
 
+watchEffect(() => {
+    console.log('Current Hive ID:', hiveStore.currentHiveId)
+    console.log('Members:', hiveStore.getMembers(hiveStore.currentHiveId ?? 0))
+})
+
+watch(
+    () => props.task,
+    (newTask) => {
+        if (newTask) {
+            assignedMember.value = newTask.assignee ?? null
+
+            // Optional: also rehydrate other fields like status/priority if editing
+            status.value =
+                statusOptions.find((s) => s.id === newTask.status) ||
+                statusOptions[0]
+            priority.value =
+                priorityOptions.find((p) => p.id === newTask.priority) ||
+                priorityOptions[1]
+        }
+    },
+    { immediate: true }
+)
+
 watch(
     () => props.isOpen,
-    (val) => {
-        if (val) {
+    (open) => {
+        if (open) {
             resetTask()
+            const hiveId = hiveStore.currentHiveId
+            if (hiveId !== null) {
+                updateMembersOptions(hiveId)
+            }
         }
     }
 )
-
-watch(selectedMember, (member) => {
-    task.value.assignee = member ? Number(member.id) : undefined
-})
 
 watch([status, priority], ([s, p]) => {
     task.value.status = s.id
     task.value.priority = p.id
 })
 
+watch(
+    () => hiveStore.currentHiveId,
+    (hiveId) => {
+        if (hiveId) updateMembersOptions(hiveId)
+    },
+    { immediate: true }
+)
+
 watch(modelValue, (val) => {
     if (val) {
         const jsDate = val.toDate(getLocalTimeZone())
-        task.value.date = jsDate
+        task.value.due_date = jsDate.toISOString().split('T')[0]
+    }
+})
+
+onMounted(() => {
+    const hiveId = hiveStore.currentHiveId
+    if (hiveId !== null) {
+        const members = hiveStore.getMembers(hiveId)
+        console.log('Members from hiveStore:', members)
+
+        membersOptions.value = [
+            { label: 'Unassigned', value: null },
+            ...members.map((member) => ({
+                label: member.user.username,
+                value: member.user.id,
+            })),
+        ]
     }
 })
 
@@ -229,33 +266,66 @@ function resetTask() {
     task.value = {
         name: '',
         description: '',
-        assignee: undefined,
-        date: undefined,
-        status: 'TD',
-        priority: 'M',
-        hive: 1,
+        assignee: null,
+        due_date: '',
+        status: status.value.id,
+        priority: priority.value.id,
+        hive: props.task?.hive || 1,
         created_by: 0,
     }
+
+    if (props.task?.due_date) {
+        const date = new Date(props.task.due_date)
+        modelValue.value = new CalendarDate(
+            date.getFullYear(),
+            date.getMonth() + 1,
+            date.getDate()
+        )
+    } else {
+        modelValue.value = null
+    }
+
+    const hiveId = props.task?.hive || 1
+    task.value.hive = hiveId
+    updateMembersOptions(hiveId)
 }
 
-function memberName(id: string | number) {
-    return props.members.find((m) => m.id === id)?.name ?? ''
-}
+watch(
+    () => props.task?.hive,
+    (hiveId) => {
+        if (hiveId) updateMembersOptions(hiveId)
+    },
+    { immediate: true }
+)
 
 function close() {
     emit('close')
 }
 
+async function updateMembersOptions(hiveId: number) {
+    const members = hiveStore.getMembers(hiveId)
+    if (!members || members.length === 0) {
+        console.warn('No members found for hive', hiveId)
+    }
+
+    membersOptions.value = [
+        { label: 'Unassigned', value: null },
+        ...members.map((m) => ({
+            label: m.user.username,
+            value: m.user.id,
+        })),
+    ]
+}
+
 async function submit() {
     if (!task.value.name) return
 
+    task.value.assignee = assignedMember.value ?? null
     task.value.created_by = userStore.user?.id || 0
 
     const finalTask = {
         ...task.value,
-        status: status.value.id,
-        priority: priority.value.id,
-        due_date: task.value.date?.toISOString().split('T')[0] ?? '',
+        due_date: task.value.due_date,
     }
 
     try {
