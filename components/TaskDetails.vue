@@ -5,10 +5,14 @@
     >
         <!-- Status and Close Header -->
         <div
-            class="flex border-b border-primary bg-secondary text-info items-center justify-between p-2"
+            class="flex border-b border-primary bg-secondary text-primary items-center justify-between p-2"
             style="font-family: 'Nexa'; font-weight: 800"
         >
-            Edit Task
+            <h1
+                style="font-family: 'Nexa'; font-weight: 800; font-size: 1.4rem"
+            >
+                Edit Task
+            </h1>
             <UButton
                 icon="mingcute:close-fill"
                 color="neutral"
@@ -21,65 +25,91 @@
         </div>
 
         <!-- Main Content -->
-        <div class="w-100 flex-grow overflow-y-auto px-14 py-4 space-y-2">
+        <div class="w-100 flex-grow overflow-y-auto px-14 py-20 text-primary">
             <div class="flex flex-col gap-4">
-                <UInput
-                    v-model="editedTaskName"
-                    placeholder="Task Name"
-                    color="info"
-                    variant="solid"
-                    size="md"
-                    class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
-                />
-                <UInput
-                    v-model="editedTaskDescription"
-                    placeholder="Task Description"
-                    color="info"
-                    variant="solid"
-                    size="md"
-                    class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
-                />
-                <USelect
-                    v-model="currentStatus"
-                    :items="statusOptions"
-                    option-attribute="label"
-                    value-attribute="value"
-                    placeholder="Select Status"
-                    color="solid"
-                    variant="solid"
-                    size="md"
-                    class="w-33 font-semibold bg-info text-primary border-secondary"
-                />
-                <USelect
-                    v-model="assignedMember"
-                    :items="membersOptions"
-                    option-attribute="label"
-                    value-attribute="value"
-                    placeholder="Assign Member"
-                    color="secondary"
-                    variant="solid"
-                    size="md"
-                    class="w-33 font-semibold bg-info text-primary border-secondary"
-                />
-                <UPopover>
-                    <UButton
+                <div>
+                    <p style="font-family: 'Nexa'; font-weight: 800">Title</p>
+                    <UInput
+                        v-model="editedTaskName"
+                        placeholder="Task Name"
+                        color="info"
+                        variant="solid"
+                        size="md"
+                        class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
+                        style="font-family: 'Nexa'; font-weight: 200"
+                    />
+                </div>
+                <div>
+                    <p style="font-family: 'Nexa'; font-weight: 800">
+                        Description
+                    </p>
+                    <UInput
+                        v-model="editedTaskDescription"
+                        placeholder="Task Description"
+                        color="info"
+                        variant="solid"
+                        size="md"
+                        class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
+                        style="font-family: 'Nexa'; font-weight: 200"
+                    />
+                </div>
+                <div>
+                    <p style="font-family: 'Nexa'; font-weight: 800">Status</p>
+                    <USelect
+                        v-model="currentStatus"
+                        :items="statusOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Select Status"
+                        color="solid"
+                        variant="solid"
+                        size="md"
+                        class="w-full font-semibold bg-info text-primary border-secondary"
+                        style="font-family: 'Nexa'; font-weight: 200"
+                    />
+                </div>
+                <div>
+                    <p style="font-family: 'Nexa'; font-weight: 800">
+                        Assign Member
+                    </p>
+                    <USelect
+                        v-model="assignedMember"
+                        :items="membersOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Assign Member"
                         color="secondary"
                         variant="solid"
-                        icon="i-lucide-calendar"
-                        class="w-33 font-semibold bg-info text-primary border-secondary"
-                    >
-                        {{
-                            modelValue
-                                ? df.format(
-                                      modelValue.toDate(getLocalTimeZone())
-                                  )
-                                : 'Select a date'
-                        }}
-                    </UButton>
-                    <template #content>
-                        <UCalendar v-model="modelValue" class="p-2" />
-                    </template>
-                </UPopover>
+                        size="md"
+                        class="w-full font-semibold bg-info text-primary border-secondary"
+                        style="font-family: 'Nexa'; font-weight: 200"
+                    />
+                </div>
+                <div>
+                    <p style="font-family: 'Nexa'; font-weight: 800">
+                        Due Date
+                    </p>
+                    <UPopover>
+                        <UButton
+                            color="secondary"
+                            variant="solid"
+                            icon="i-lucide-calendar"
+                            class="w-full font-semibold bg-info text-primary border-secondary"
+                            style="font-family: 'Nexa'; font-weight: 200"
+                        >
+                            {{
+                                modelValue
+                                    ? df.format(
+                                          modelValue.toDate(getLocalTimeZone())
+                                      )
+                                    : 'Select a date'
+                            }}
+                        </UButton>
+                        <template #content>
+                            <UCalendar v-model="modelValue" class="p-2" />
+                        </template>
+                    </UPopover>
+                </div>
             </div>
         </div>
 
@@ -93,6 +123,7 @@
                     size="sm"
                     class="text-white"
                     @click="saveTaskChanges"
+                    style="font-family: 'Nexa'; font-weight: 200"
                 >
                     Save Changes
                 </UButton>
@@ -104,6 +135,7 @@
                 size="sm"
                 class="text-white"
                 @click="deleteTask"
+                style="font-family: 'Nexa'; font-weight: 200"
             >
                 Delete Task
             </UButton>
@@ -112,12 +144,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { useUserStore } from '~/stores/user'
-import { storeToRefs } from 'pinia'
-import type { ApiResponse, User } from '~/interfaces/common'
+import { ref } from 'vue'
 import type { Task, AddTaskPayload, Status } from '~/interfaces/task'
-import type { HiveMember } from '~/interfaces/hive'
 import { useHiveStore } from '~/stores/hive'
 
 import {
@@ -137,7 +165,6 @@ const df = new DateFormatter('en-US', {
     dateStyle: 'medium',
 })
 
-// const modelValue = shallowRef(new CalendarDate(2025, 5, 10))
 const modelValue = shallowRef<CalendarDate | null>(null)
 const editedTaskName = ref(props.task.name)
 const editedTaskDescription = ref(props.task.description)
@@ -231,9 +258,6 @@ async function saveTaskChanges() {
     if (editedTaskDescription.value !== props.task.description) {
         payload.description = editedTaskDescription.value
     }
-
-    console.log('Assigned Member ID:', assignedMember.value)
-    console.log('Payload being sent:', payload)
 
     if (Object.keys(payload).length === 0) {
         alert('No changes to save.')

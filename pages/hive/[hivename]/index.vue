@@ -212,8 +212,8 @@
 
     <AddTaskModal
         :is-open="isAddTaskModalOpen"
-        :members="memberOptions"
-        :created-by="userStore.user?.id || 0"
+        :task="defaultTask"
+        :created-by="userStore.user?.id"
         @close="isAddTaskModalOpen = false"
         @submit="handleSubmit"
     />
@@ -222,7 +222,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, watch } from 'vue'
 import type { Hive, HiveMember } from '~/interfaces/hive'
-import type { Task, NewTask } from '~/interfaces/task'
+import type { Task, AddTaskPayload } from '~/interfaces/task'
 import type { TabsItem } from '@nuxt/ui'
 import { useHiveTaskStore } from '~/stores/task'
 import { useHiveStore } from '~/stores/hive'
@@ -245,6 +245,19 @@ const isAddMemberModalOpen = ref(false)
 const isAddTaskModalOpen = ref(false)
 const selectedTask = ref<Task | null>(null)
 const selectedMember = ref<HiveMember | null>(null)
+
+const defaultTask = ref<Task>({
+    id: 0,
+    name: '',
+    description: '',
+    assignee: null,
+    due_date: '',
+    status: 'TD',
+    priority: 'M',
+    hive: 1,
+    created_by: 0,
+    created_on: '',
+})
 
 const tasksForHive = computed(() => {
     return hiveStore.getTasksForHive(Number(route.params.hivename))
@@ -326,25 +339,13 @@ onMounted(async () => {
         // Always fetch tasks for this hive when the page is loaded
         await taskStore.fetchHiveTasks(hiveId)
         console.log('Fetched tasks for hive:', hiveStore.hiveTasks[hiveId])
+        console.log('Loaded Hive Members:', hiveMembers.value)
     }
 })
 
-const memberOptions = computed(() => {
-    return hiveMembers.value.map((member) => ({
-        id: member.id,
-        name: member.username,
-    }))
-})
-
 const userTaskStore = useUserTaskStore()
-const hiveTaskStore = useHiveTaskStore()
 
-const memberNameById = (id: string | number | undefined) => {
-    if (!id) return ''
-    return hiveMembers.value.find((m) => m.id === id)?.username || ''
-}
-
-async function handleSubmit(taskPayload: NewTask) {
+async function handleSubmit(taskPayload: AddTaskPayload) {
     if (!hiveId) {
         console.error('Hive ID is not available')
         return // Early exit if hiveId is not set
@@ -359,7 +360,7 @@ async function handleSubmit(taskPayload: NewTask) {
     }
 
     // Now call your store to create the task with the updated payload
-    await hiveTaskStore.createHiveTask(updatedTaskPayload)
+    await hiveStore.addTask(updatedTaskPayload)
 
     // Optionally, fetch user tasks if needed
     // await userTaskStore.fetchUserTasks(userStore.user?.id || 10);
@@ -410,28 +411,6 @@ function handleUpdateTaskStatus({
     )
     // await hiveStore.updateTaskStatus(taskId, status); // Example store action call
     // Note: The computed properties will update automatically when store state changes
-}
-
-function handleUpdateTaskTitle({
-    taskId,
-    title,
-}: {
-    taskId: string | number
-    title: string
-}) {
-    console.log(
-        `TODO: Call store action to update task ${taskId} title to: ${title}`
-    )
-    // await hiveStore.updateTaskTitle(taskId, title); // Example store action call
-}
-
-function handleDeleteTask(taskId: string | number) {
-    console.log(`TODO: Call store action to delete task ${taskId}`)
-    // await hiveStore.deleteTask(taskId); // Example store action call
-    if (selectedTask.value?.id === taskId) {
-        isTaskDetailsOpen.value = false
-        selectedTask.value = null
-    }
 }
 
 function handleUpdateTaskDate({
