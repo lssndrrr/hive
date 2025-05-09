@@ -7,9 +7,12 @@ import type {
     AuthResponse,
 } from '~/interfaces/auth'
 
+import type { Notification } from '~/interfaces/notifs'
+
 export const useUserStore = defineStore('user', {
     state: () => ({
         user: null as User | null,
+        notifications: [] as Notification[],
     }),
 
     actions: {
@@ -193,9 +196,6 @@ export const useUserStore = defineStore('user', {
             data: Partial<AuthResponse['user']>
         ): Promise<ApiResponse<AuthResponse>> {
             try {
-                // const { profile, ...userData } = data
-
-                // await api.get('/auth/csrf/')
                 const res = await api.patch<ApiResponse<AuthResponse>>(
                     `/user/${this.user?.username}/`,
                     data
@@ -224,12 +224,18 @@ export const useUserStore = defineStore('user', {
                 }
             }
         },
-        // async fetchUser() {
-        //     if (this.user?.username) {
-        //         await this.fetchAccount(this.user.username)
-        //     }
-        // },
-        // New action to remove profile picture
+        async fetchNotifications() {
+            if (!this.user) return
+
+            try {
+                const res = await api.get<ApiResponse<Notification[]>>(
+                    '/notif/'
+                )
+                this.notifications = res.data.data || []
+            } catch (err: any) {
+                console.error('Failed to fetch notifications:', err)
+            }
+        },
     },
     persist: true,
 })
