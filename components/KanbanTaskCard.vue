@@ -1,5 +1,5 @@
 <template>
-    <div class="relative mb-5">
+    <div class="relative m-4">
         <!-- Make this container relative -->
         <!-- Overlapping priority badge -->
         <p

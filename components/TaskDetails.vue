@@ -70,6 +70,23 @@
                 </div>
                 <div>
                     <p style="font-family: 'Nexa'; font-weight: 800">
+                        Priority
+                    </p>
+                    <USelect
+                        v-model="currentPriority"
+                        :items="priorityOptions"
+                        option-attribute="label"
+                        value-attribute="value"
+                        placeholder="Select Priority"
+                        color="solid"
+                        variant="solid"
+                        size="md"
+                        class="w-full font-semibold bg-info text-primary border-secondary"
+                        style="font-family: 'Nexa'; font-weight: 200"
+                    />
+                </div>
+                <div>
+                    <p style="font-family: 'Nexa'; font-weight: 800">
                         Assign Member
                     </p>
                     <USelect
@@ -145,7 +162,7 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import type { Task, AddTaskPayload, Status } from '~/interfaces/task'
+import type { Task, AddTaskPayload, Status, Priority } from '~/interfaces/task'
 import { useHiveStore } from '~/stores/hive'
 
 import {
@@ -188,7 +205,14 @@ const statusOptions = [
     { label: 'Overdue', value: 'OD' },
 ] as const
 
+const priorityOptions = [
+    { label: 'Low', value: 'L' },
+    { label: 'Medium', value: 'M' },
+    { label: 'High', value: 'H' },
+] as const
+
 const currentStatus = ref<Status>(props.task.status)
+const currentPriority = ref<Priority>(props.task.priority)
 const assignedMember = ref<number | null>(props.task.assignee ?? null)
 
 const membersOptions = ref<{ label: string; value: number | null }[]>([])
@@ -241,6 +265,10 @@ async function saveTaskChanges() {
 
     if (currentStatus.value !== props.task.status) {
         payload.status = currentStatus.value
+    }
+
+    if (currentPriority.value !== props.task.priority) {
+        payload.priority = currentPriority.value
     }
 
     if (assignedMember.value !== props.task.assignee) {
