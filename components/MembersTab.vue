@@ -18,7 +18,12 @@
                 <span class="text-sm font-medium truncate w-full text-center">{{ member.user.username }}</span>
             </div>
             
-            <UModal title="Add Member" v-model:open="isAddMemberModalOpen" :ui="{ footer: 'justify-end' }" color="primary">
+            <UModal 
+                title="Add Member" 
+                v-model:open="isAddMemberModalOpen" 
+                :ui="{ footer: 'justify-end' }" 
+                color="primary"
+            >
                 <UButton
                     color="primary"
                     variant="ghost"
@@ -27,18 +32,21 @@
                     class="bg-[#FAD59A] text-[#A86523] rounded-lg p-3 shadow hover:shadow-md transition-all duration-200 flex flex-col items-center justify-center aspect-square hover:bg-[#ffd7af] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#A86523] cursor-pointer"
                     @click="addMember"
                 />
-
                 <template #body>
-                    <UInput 
-                        placeholder="Enter username"
-                        color="primary"
-                        class="w-full"
-                    />
+                    <UForm @submit="inviteNewMember">
+                        <UFormField label="Username" required>
+                            <UInput 
+                                v-model="inviteUsername"
+                                placeholder="Enter username"
+                                class="w-full"
+                            />
+                        </UFormField>
+                    </UForm>
                 </template>
 
                 <template #footer>
                     <UButton label="Cancel" color="primary" variant="ghost" @click="isAddMemberModalOpen = false" />
-                    <UButton label="Send Invite" color="primary" @click="submitNewMember" />
+                    <UButton label="Send Invite" type="submit" :loading="isSending" color="primary" @click="inviteNewMember" />
                 </template>
             </UModal>
         </div>
@@ -57,6 +65,11 @@ members: {
 });
 
 const isAddMemberModalOpen = ref(false)
+const inviteUsername = ref('')
+const isSending = ref(false)
+const userStore = useUserStore()
+const hiveStore = useHiveStore()
+const toast = useToast()
 
 const emit = defineEmits(['add-member-clicked', 'view-member-details']);
 
@@ -75,10 +88,41 @@ function handleAddNewMember() {
     isAddMemberModalOpen.value = true
 }
 
-function submitNewMember() {
+async function inviteNewMember() {
     console.log('Submitting new member...')
-    // Add logic here to gather form data and send it to your backend/API
-    isAddMemberModalOpen.value = false
+
+    if (!inviteUsername.value.trim()) return
+    
+    isSending.value = true
+
+    try {
+        // 1. Call your existing inviteMember method
+        const response = await hiveStore.inviteMember(inviteUsername.value)
+        
+        if (response?.success) {
+            // 2. Refresh notifications for the current user
+            await userStore.fetchNotifications()
+            
+            // 3. Show success feedback
+            toast.add({
+                title: 'Invite sent!',
+                description: `Invitation sent to @${inviteUsername.value}`,
+                color: 'success'
+            })
+
+            // 4. Close modal and reset
+            isAddMemberModalOpen.value = false
+            inviteUsername.value = ''
+        }
+    } catch (error:any) {
+        toast.add({
+            title: 'Failed to send invite',
+            description: error.data?.message || 'User not found',
+            color: 'error'
+        })
+    } finally {
+        isSending.value = false
+    }
 }
 </script>
   

@@ -43,6 +43,7 @@
 
 <script setup lang="ts">
 import type { Notification } from '~/interfaces/notifs'
+import { format } from 'date-fns'
 
 const props = defineProps<{
     notification: Notification
@@ -52,16 +53,24 @@ const emit = defineEmits(['accept', 'decline'])
 const userStore = useUserStore()
 
 const notificationTitle = computed(() => {
-  switch(props.notification.type) {
-    case 'INV': return 'Hive Invitation'
-    case 'REM': return 'Reminder'
-    default: return 'Notification'
-  }
+    switch(props.notification.type) {
+        case 'INV': return 'Hive Invitation'
+        case 'REM': return 'Reminder'
+        default: return 'Notification'
+    }
 })
 
-const handleClick = () => {
-  if (!props.notification.is_read) {
-    userStore.markNotificationAsRead(props.notification.id)
-  }
+const formatDate = (dateString: string) => {
+    try {
+        return format(new Date(dateString), 'MMM d, yyyy h:mm a')
+    } catch {
+        return ''
+    }
+}
+
+const handleClick = async () => {
+    if (!props.notification.is_read) {
+        await userStore.markNotificationAsRead(props.notification.id)
+    }
 }
 </script>

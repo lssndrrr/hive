@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 
 const props = defineProps({
     isOpen: Boolean
@@ -73,27 +73,44 @@ const emit = defineEmits(['close']);
 const userStore = useUserStore()
 const filter = ref<'all' | 'unread'>('all')
 
-const isLoading = computed(() => userStore.isLoadingNotifications)
-const notifications = computed(() => userStore.notifications)
+onMounted(() => {
+    console.log('Initial notifications:', userStore.notifications)
+})
+
+const isLoading = computed(() => {
+    console.log('Loading state:', userStore.isLoadingNotifications)
+    return userStore.isLoadingNotifications
+})
+
+const notifications = computed(() => {
+    console.log('Current notifications:', userStore.notifications)
+    return userStore.notifications
+})
 
 const filteredNotifications = computed(() => {
-  return filter.value === 'unread' 
-    ? notifications.value.filter(n => !n.is_read)
-    : notifications.value
+    const filtered = filter.value === 'unread' 
+        ? notifications.value.filter(n => !n.is_read)
+        : notifications.value
+    console.log('Filtered notifications:', filtered)
+    return filtered
 })
 
 watch(() => props.isOpen, async (isOpen) => {
-  if (isOpen) await userStore.fetchNotifications()
+    console.log('Panel open state changed:', isOpen)
+    if (isOpen) {
+        console.log('Fetching notifications...')
+        await userStore.fetchNotifications()
+    }
 })
 
 const handleAccept = async (id: number) => {
-  // You'll need to add this method to your user store
-  await userStore.respondToNotification(id, true)
+    console.log('Accepting notification:', id)
+    await userStore.respondToInvite(id, true)
 }
 
 const handleDecline = async (id: number) => {
-  // You'll need to add this method to your user store
-  await userStore.respondToNotification(id, false)
+    console.log('Declining notification:', id)
+    await userStore.respondToInvite(id, false)
 }
 
 </script>

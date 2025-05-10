@@ -226,21 +226,34 @@ export const useUserStore = defineStore('user', {
                 }
             }
         },
+
         async fetchNotifications() {
-            if (!this.user) return
             this.isLoadingNotifications = true
             try {
-                const res = await api.get<ApiResponse<Notification[]>>(
-                    '/notif/'
-                )
-                this.notifications = res.data.data || []
-            } catch (err: any) {
-                console.error('Failed to fetch notifications:', err)
+                const response = await api.get('/notif/');
+                this.notifications = response.data.map((notif: any) => ({
+                    id: notif.id,
+                    recipient: notif.recipient,
+                    message: notif.message,
+                    type: notif.type,
+                    created_at: notif.created_at,
+                    is_read: notif.is_read,
+                    invitation_id: notif.invitation_id,  // Ensure this matches your Django API
+                    data: {
+                        hiveId: notif.data?.hiveId,
+                        hiveName: notif.data?.hiveName
+                    }
+                }));
+                console.log('Fetched notifications:', this.notifications); // Debug log
+            } catch (error) {
+                console.error('Failed to fetch notifications:', error);
+                this.notifications = [];
             } finally {
-                this.isLoadingNotifications = false
+                this.isLoadingNotifications = false;
             }
             
         },
+
         async markNotificationAsRead(notificationId: number) {
             try {
               await api.patch(`/notif/${notificationId}/read/`)
@@ -253,13 +266,27 @@ export const useUserStore = defineStore('user', {
             }
         },
         
-        async respondToNotification(notificationId: number, accept: boolean) {
+        async respondToInvite(invitationId: number, accept: boolean): Promise<void> {
             try {
-                await api.post(`/notif/${notificationId}/respond/`, { accept })
-                // Remove the notification from state
-                this.notifications = this.notifications.filter(n => n.id !== notificationId)
+                const response = await api.patch(`/invite/${invitationId}/${accept ? 'accept' : 'decline'}/`);
+                
+                if (response.data) {
+                    // Remove the notification from state
+                    this.notifications = this.notifications.filter(n => 
+                        n.invitation_id !== invitationId
+                    );
+
+                    // If accepted, refresh hive data
+                    if (accept) {
+                        const hiveStore = useHiveStore();
+                        await hiveStore.fetchUserHives();
+                    }
+
+                    return response.data;
+                }
             } catch (error) {
-                console.error('Failed to respond to notification', error)
+                console.error('Failed to respond to invitation:', error);
+                throw error;
             }
         },
     },

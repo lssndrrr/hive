@@ -297,7 +297,8 @@ export const useHiveStore = defineStore('hive', {
                     username,
                     hive: this.currentHiveId,
                 }
-                await api.post('/user/invite_member/', payload)
+
+                await api.post('/hive/invite_member/', payload)
 
                 return {
                     data: null,
