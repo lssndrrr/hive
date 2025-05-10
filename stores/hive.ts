@@ -351,7 +351,7 @@ export const useHiveStore = defineStore('hive', {
         async updateMemberRole(
             hiveId: number,
             userId: number,
-            newRole: 'QB' | 'BK' | 'WORKER_BEE'
+            newRole: 'QB' | 'BK' | 'WB'
         ) {
             try {
                 console.log('Sending PATCH request...')
