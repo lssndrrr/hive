@@ -7,14 +7,19 @@
           </span>
         </div>
 
-        <div>
+        <div class="flex justify-end space-x-2">
           <USelect 
             placeholder="Sort By"
-            :items="items"
+            :items="sortItems"
+            size="xs"
+            :ui="{ base: 'text-[#A86523] bg-[#fff8e5] ring-0', content: 'ring-0 bg-primary' }"
+            :highlight="false"
           />
           <USelect 
             placeholder="Filter"
-            :items="items"
+            :items="filterItems"
+            size="xs"
+            :ui="{ base: 'bg-[#fff8e5] w-20  ring-0 focus-visible:ring-0', content: 'ring-0 bg-primary' }"
           />
         </div>
 
@@ -41,6 +46,7 @@
     import type { PropType } from 'vue';
     import type { Task } from '~/interfaces/task';
     import type { HiveMember } from '~/interfaces/hive';
+import { highlight } from '@nuxt/ui/runtime/utils/fuse.js';
 
 
     const props = defineProps({
@@ -62,7 +68,8 @@
       }
     });
     
-    const items = ref(['Backlog', 'Todo', 'In Progress', 'Done'])
+    const sortItems = ref(['Date'])
+    const filterItems = ref(['Small', 'Medium', 'Large'])
 
     const emit = defineEmits(['view-task-details', 'edit-task', 'delete-task']);
 

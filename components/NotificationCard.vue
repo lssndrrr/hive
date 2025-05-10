@@ -1,13 +1,14 @@
 <template>
     <UCard
         variant="solid"
-        color="primary"
-        :ui="{ root: 'space-y-0', header: 'sm:px-4 px-2 py-3', body: 'sm:px-4 sm:py-2', footer: 'sm:px-4 px-2 py-3'}"
+        class="bg-[#fff8e5]"
+        :ui="{ root: 'space-y-0', header: 'sm:px-4 px-2 sm:pt-3 pt-2', body: 'sm:px-4 sm:py-0', footer: 'sm:px-4 px-2 pt-3'}"
         @click="handleClick"
     >
         <template #header>
             <h1
-                style="font-family: 'Nexa'; font-weight: 200"
+                style="font-family: 'Nexa'; font-weight: 800"
+                class="text-[#A86523]"
             >
             {{ notificationTitle }}
             </h1>

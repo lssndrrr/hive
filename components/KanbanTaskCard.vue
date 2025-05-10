@@ -3,7 +3,7 @@
         <!-- Make this container relative -->
         <!-- Overlapping priority badge -->
         <p
-            class="absolute -top-2 right-2 z-10 text-sm font-bold bg-secondary text-info px-2 py-1 rounded-md shadow"
+            class="absolute top-2.5 right-2 z-10 text-xs font-bold bg-primary text-info px-2 py-1 rounded-md shadow"
         >
             {{ displayPriority }}
         </p>
@@ -11,7 +11,7 @@
         <!-- The card -->
         <UCard
             variant="soft"
-            class="bg-[#FAD59A] text-[#a18c76] cursor-pointer"
+            class="bg-[#fff8e5] text-[#a18c76] cursor-pointer"
             @click="emit('view-task-details', task)"
         >
             <div class="flex justify-between items-center mb-4">
@@ -41,8 +41,8 @@
 
                 <div class="flex items-center">
                     <UAvatar
-                        :src="'/img/bee.jpg'"
-                        alt="Bee"
+                        :src="'/img/blank.svg'"
+                        alt="profile"
                         size="2xs"
                         icon="i-heroicons-user-circle"
                         class="bg-[#A86523] text-[#FFF8E5]"

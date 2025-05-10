@@ -1,15 +1,16 @@
 <template>
     <aside
-        class="w-[25%] h-full bg-secondary fixed top-0 right-0 flex flex-col"
+        class="w-[25%] h-full bg-[#FCEFCB] fixed top-0 right-0 flex flex-col"
         @click.stop
     >
         <!-- Status and Close Header -->
         <div
-            class="flex border-b border-primary bg-secondary text-primary items-center justify-between p-2"
+            class="flex border-b border-primary bg-[#FCEFCB] text-primary items-center justify-between px-6 py-2"
             style="font-family: 'Nexa'; font-weight: 800"
         >
             <h1
                 style="font-family: 'Nexa'; font-weight: 800; font-size: 1.4rem"
+                class=""
             >
                 Edit Task
             </h1>
@@ -25,7 +26,7 @@
         </div>
 
         <!-- Main Content -->
-        <div class="w-100 flex-grow overflow-y-auto px-14 py-20 text-primary">
+        <div class="w-100 flex-grow overflow-y-auto px-10 py-15 text-primary">
             <div class="flex flex-col gap-4">
                 <div>
                     <p style="font-family: 'Nexa'; font-weight: 800">Title</p>
@@ -37,6 +38,7 @@
                         size="md"
                         class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
                         style="font-family: 'Nexa'; font-weight: 200"
+                        :ui="{ base: 'bg-white' }"
                     />
                 </div>
                 <div>
@@ -51,6 +53,7 @@
                         size="md"
                         class="rounded-md w-full font-semibold bg-info text-primary border-secondary"
                         style="font-family: 'Nexa'; font-weight: 200"
+                        :ui="{ base: 'bg-white' }"
                     />
                 </div>
                 <div>
@@ -66,6 +69,7 @@
                         size="md"
                         class="w-full font-semibold bg-info text-primary border-secondary"
                         style="font-family: 'Nexa'; font-weight: 200"
+                        :ui="{ base: 'bg-white' }"
                     />
                 </div>
                 <div>
@@ -83,6 +87,7 @@
                         size="md"
                         class="w-full font-semibold bg-info text-primary border-secondary"
                         style="font-family: 'Nexa'; font-weight: 200"
+                        :ui="{ base: 'bg-white' }"
                     />
                 </div>
                 <div>
@@ -95,11 +100,12 @@
                         option-attribute="label"
                         value-attribute="value"
                         placeholder="Assign Member"
-                        color="secondary"
+                        color="primary"
                         variant="solid"
                         size="md"
                         class="w-full font-semibold bg-info text-primary border-secondary"
                         style="font-family: 'Nexa'; font-weight: 200"
+                        :ui="{ base: 'bg-white' }"
                     />
                 </div>
                 <div>
@@ -113,6 +119,7 @@
                             icon="i-heroicons-calendar"
                             class="w-full font-semibold bg-info text-primary border-secondary"
                             style="font-family: 'Nexa'; font-weight: 200"
+                            :ui="{ base: 'bg-white' }"
                         >
                             {{
                                 modelValue
@@ -131,31 +138,27 @@
         </div>
 
         <!-- Delete Button -->
-        <div class="flex px-8 py-4 border-t border-[#A86523]/50">
-            <div class="flex px-8 py-4 justify-end">
-                <UButton
-                    color="primary"
-                    variant="solid"
-                    icon="material-symbols:save-outline-rounded"
-                    size="sm"
-                    class="text-white"
-                    @click="saveTaskChanges"
-                    style="font-family: 'Nexa'; font-weight: 200"
-                >
-                    Save Changes
-                </UButton>
-            </div>
+        <div class="flex px-8 py-4 justify-between items-center space-x-4">
             <UButton
+                label="Save Changes"
+                color="primary"
+                variant="solid"
+                icon="material-symbols:save-outline-rounded"
+                size="sm"
+                class="text-white w-full justify-center cursor-pointer"
+                @click="saveTaskChanges"
+                style="font-family: 'Nexa'; font-weight: 800"
+            />
+            <UButton
+                label="Delete Task"
                 color="secondary"
                 variant="solid"
                 icon="material-symbols:delete-outline-rounded"
                 size="sm"
-                class="text-white"
+                class="text-white w-full justify-center cursor-pointer"
                 @click="deleteTask"
-                style="font-family: 'Nexa'; font-weight: 200"
-            >
-                Delete Task
-            </UButton>
+                style="font-family: 'Nexa'; font-weight: 800"
+            />
         </div>
     </aside>
 </template>

@@ -25,7 +25,7 @@
                     size="xl"
                     :alt="member.user.username"
                     icon="i-heroicons-user"
-                    src="/img/bee.jpg"
+                    src="/img/blank.svg"
                 />
                 <h3 class="text-xl font-bold text-[#A86523]">
                     {{ member.user.username || 'Member Name' }}

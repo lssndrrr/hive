@@ -10,7 +10,7 @@
         >
             <div class="parent-container">
                 <div class="circle-container">
-                    <img src="/img/bee.jpg" alt="" class="profile-image" />
+                    <img src="/img/blank.svg" alt="" class="profile-image" />
                 </div>
             </div>
         </div>

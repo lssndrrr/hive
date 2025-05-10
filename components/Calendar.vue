@@ -5,14 +5,14 @@
                 <UButton
                     size="sm"
                     @click="mode = 'week'"
-                    :variant="mode === 'week' ? 'solid' : 'ghost'"
+                    :variant="mode === 'week' ? 'subtle' : 'ghost'"
                 >
                     Week
                 </UButton>
                 <UButton
                     size="sm"
                     @click="mode = 'month'"
-                    :variant="mode === 'month' ? 'solid' : 'ghost'"
+                    :variant="mode === 'month' ? 'subtle' : 'ghost'"
                 >
                     Month
                 </UButton>
@@ -52,7 +52,7 @@
                 :key="day.toISOString()"
                 :class="[
                     'border border-[#A86523]/20 rounded p-2 min-h-[100px] flex flex-col',
-                    isToday(day) ? 'bg-[#A86523]/10' : '', // Highlight today
+                    isToday(day) ? 'bg-[#fff8e5]' : '', // Highlight today
                     isCurrentMonth(day)
                         ? ''
                         : 'bg-[#A86523]/5 text-[#A86523]/50', // Dim days outside current month
@@ -61,7 +61,7 @@
                 <span
                     :class="[
                         'font-medium text-sm mb-1',
-                        isToday(day) ? 'text-[#E9A319] font-bold' : '',
+                        isToday(day) ? 'text-[#E9A319] font-black' : '',
                     ]"
                 >
                     {{ format(day, 'd') }}
@@ -73,7 +73,7 @@
                     <div
                         v-for="task in tasksByDate[format(day, 'yyyy-MM-dd')]"
                         :key="task.id"
-                        class="bg-[#FAD59A] p-1 rounded text-[#A86523] truncate cursor-pointer hover:bg-[#E9A319]/50"
+                        class="bg-primary p-1 rounded text-white truncate cursor-pointer hover:bg-[#E9A319]/50"
                         @click="emit('view-task-details', task)"
                     >
                         {{ task.name }}

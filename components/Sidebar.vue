@@ -7,7 +7,7 @@
                 :to="`/${userStore.user?.username}/settings`"
                 aria-label="User Settings"
             >
-                <UAvatar src="/img/bee.jpg" alt="User Avatar" size="lg" />
+                <UAvatar src="/img/blank.svg" alt="User Avatar" size="lg" />
             </NuxtLink>
         </div>
 

@@ -13,7 +13,7 @@
                     class="flex items-center justify-between p-3 rounded-lg bg-[#FCEFCB] hover:bg-[#FAD59A] cursor-pointer group"
                     @click="emit('view-task-details', task)"
                 >
-                    <span class="text-sm text-[#A86523]">{{ task.name }}</span>
+                    <span class="text-sm text-[#A86523]" style="font-family: 'Nexa'; font-weight: 800">{{ task.name }}</span>
                     <UDropdown
                         :items="taskOptions(task)"
                         :popper="{ placement: 'bottom-end' }"
@@ -51,7 +51,7 @@
                     class="flex items-center justify-between p-3 rounded-lg bg-[#FCEFCB] hover:bg-[#FAD59A] cursor-pointer group"
                     @click="emit('view-task-details', task)"
                 >
-                    <span class="text-sm text-[#A86523]">{{ task.name }}</span>
+                    <span class="text-sm text-[#A86523]" style="font-family: 'Nexa'; font-weight: 800">{{ task.name }}</span>
                     <UDropdown
                         :items="taskOptions(task)"
                         :popper="{ placement: 'bottom-end' }"
@@ -89,7 +89,7 @@
                     @click="emit('view-task-details', task)"
                 >
                     <span
-                        class="text-sm text-[#A86523] line-through opacity-70"
+                        class="text-sm text-[#A86523] line-through opacity-70" style="font-family: 'Nexa'; font-weight: 800"
                         >{{ task.name }}</span
                     >
                     <UDropdown
@@ -128,7 +128,7 @@
                     class="flex items-center justify-between p-3 rounded-lg bg-[#FCEFCB] hover:bg-[#FAD59A] cursor-pointer group"
                     @click="emit('view-task-details', task)"
                 >
-                    <span class="text-sm text-primary">{{ task.name }}</span>
+                    <span class="text-sm text-primary" style="font-family: 'Nexa'; font-weight: 800">{{ task.name }}</span>
                     <UDropdown
                         :items="taskOptions(task)"
                         :popper="{ placement: 'bottom-end' }"
