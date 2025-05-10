@@ -17,6 +17,9 @@
             <p class="text-[#A86523] text-xs" style="font-family: 'Nexa'; font-weight: 200">
                 {{ notification.message }}
             </p>
+            <p class="text-[#A86523]/50 text-xs mt-1">
+                {{ formatDate(notification.created_at) }}
+            </p>
         </template>
 
 

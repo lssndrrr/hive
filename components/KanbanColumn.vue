@@ -7,6 +7,17 @@
           </span>
         </div>
 
+        <div>
+          <USelect 
+            placeholder="Sort By"
+            :items="items"
+          />
+          <USelect 
+            placeholder="Filter"
+            :items="items"
+          />
+        </div>
+
         <div class="flex-grow overflow-y-auto task-list-scroll">
           <KanbanTaskCard
             v-for="task in tasks"
@@ -50,19 +61,21 @@
           default: () => [],
       }
     });
+    
+    const items = ref(['Backlog', 'Todo', 'In Progress', 'Done'])
 
     const emit = defineEmits(['view-task-details', 'edit-task', 'delete-task']);
 
     function getAssigneeName(assigneeId: number | null): string | null {
         if (assigneeId === null) return null;
-        const member = props.members.find(m => m.id === assigneeId);
-        return member?.username || null; // Use username based on HiveMember interface
+        const member = props.members.find(m => m.user.id === assigneeId);
+        return member?.user.username || null; // Use username based on HiveMember interface
     }
 
     // Helper function to find assignee avatar by ID (assuming avatarUrl exists on HiveMember)
     function getAssigneeAvatar(assigneeId: number | null): string | null {
         if (assigneeId === null) return null;
-        const member = props.members.find(m => m.id === assigneeId);
+        const member = props.members.find(m => m.user.id === assigneeId);
         // Assuming your HiveMember interface might have an avatarUrl property
         // Adjust 'avatarUrl' if the property name is different
         return (member as any)?.avatarUrl || null; // Use 'as any' or add avatarUrl to HiveMember interface

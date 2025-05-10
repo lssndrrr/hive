@@ -1,7 +1,7 @@
 <template>
     <aside
         v-if="isOpen"
-        class="w-60 h-screen bg-[#FCEFCB] fixed top-0 left-16 z-40 flex flex-col p-4 shadow-lg space-y-4"
+        class="w-70 h-screen bg-[#FCEFCB] fixed top-0 left-16 z-40 flex flex-col p-4 shadow-lg space-y-4"
         aria-labelledby="hive-panel-title"
     >
         <div class="flex items-center w-full mb-4 pb-2 border-b border-[#A86523]/30 justify-between">
