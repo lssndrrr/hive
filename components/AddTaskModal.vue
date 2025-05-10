@@ -89,7 +89,7 @@
                     <UButton
                         color="secondary"
                         variant="solid"
-                        icon="i-lucide-calendar"
+                        icon="i-heroicons-calendar"
                         class="w-33 text-info"
                     >
                         {{

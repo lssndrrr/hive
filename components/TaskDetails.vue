@@ -110,7 +110,7 @@
                         <UButton
                             color="secondary"
                             variant="solid"
-                            icon="i-lucide-calendar"
+                            icon="i-heroicons-calendar"
                             class="w-full font-semibold bg-info text-primary border-secondary"
                             style="font-family: 'Nexa'; font-weight: 200"
                         >
