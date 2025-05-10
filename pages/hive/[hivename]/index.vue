@@ -117,7 +117,6 @@
                         <div class="p-8">
                             <MembersTab
                                 :members="hiveMembers"
-                                @add-member-clicked="handleAddNewMember"
                                 @view-member-details="showMemberDetails"
                             />
                         </div>
@@ -151,11 +150,13 @@
         <div class="h-full overflow-hidden">
             <MemberDetails
                 v-model="isMemberDetailsOpen"
-                v-if="isMemberDetailsOpen && selectedMember"
+                v-if="isMemberDetailsOpen && selectedMember && currentHiveId"
                 :member="selectedMember"
+                :hive-id="currentHiveId"
                 @close="isMemberDetailsOpen = false"
             ></MemberDetails>
         </div>
+
         <div class="h-full overflow-hidden">
             <TaskDetails
                 v-if="isTaskDetailsOpen && selectedTask"
@@ -166,48 +167,6 @@
                 class="details-panel"
             ></TaskDetails>
         </div>
-    </div>
-
-    <!-- Add New Member Modal -->
-    <div
-        v-if="isAddMemberModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-200/75 p-4"
-        @click.self="isAddMemberModalOpen = false"
-    >
-        <UCard class="w-full max-w-md" @click.stop>
-            <template #header>
-                <div class="flex justify-between items-center">
-                    <h2 class="text-lg font-semibold text-[#A86523]">
-                        Add New Member
-                    </h2>
-                </div>
-            </template>
-
-            <div class="p-4">
-                <p class="text-[#A86523]">
-                    Form elements to add a new member will go here.
-                </p>
-            </div>
-
-            <template #footer>
-                <div class="flex justify-end space-x-2">
-                    <UButton
-                        color="neutral"
-                        variant="ghost"
-                        class="text-[#A86523] hover:bg-transparent hover:text-white"
-                        @click="isAddMemberModalOpen = false"
-                        >Cancel</UButton
-                    >
-                    <UButton
-                        color="primary"
-                        variant="solid"
-                        class="text-white"
-                        @click="submitNewMember"
-                        >Add Member</UButton
-                    >
-                </div>
-            </template>
-        </UCard>
     </div>
 
     <AddTaskModal
@@ -241,7 +200,6 @@ const hiveId = hiveStore.currentHiveId
 
 const isTaskDetailsOpen = ref(false)
 const isMemberDetailsOpen = ref(false)
-const isAddMemberModalOpen = ref(false)
 const isAddTaskModalOpen = ref(false)
 const selectedTask = ref<Task | null>(null)
 const selectedMember = ref<HiveMember | null>(null)
@@ -343,8 +301,19 @@ onMounted(async () => {
     }
 })
 
+const memberOptions = computed(() => {
+    return hiveMembers.value.map((member) => ({
+        id: member.user.id,
+        name: member.user.username,
+    }))
+})
+
 const userTaskStore = useUserTaskStore()
 
+const memberNameById = (id: string | number | undefined) => {
+    if (!id) return ''
+    return hiveMembers.value.find((m) => m.user.id === id)?.user.username || ''
+}
 async function handleSubmit(taskPayload: AddTaskPayload) {
     if (!hiveId) {
         console.error('Hive ID is not available')
@@ -381,10 +350,6 @@ function showMemberDetails(member: any) {
     isMemberDetailsOpen.value = true
 }
 
-function handleAddNewMember() {
-    console.log('Handling add new member...')
-    isAddMemberModalOpen.value = true
-}
 
 function handleAddTask() {
     console.log('Handling add task...')
@@ -393,11 +358,6 @@ function handleAddTask() {
     isAddTaskModalOpen.value = true
 }
 
-function submitNewMember() {
-    console.log('Submitting new member...')
-    // Add logic here to gather form data and send it to your backend/API
-    isAddMemberModalOpen.value = false
-}
 
 function handleUpdateTaskStatus({
     taskId,

@@ -13,6 +13,8 @@ export const useUserStore = defineStore('user', {
     state: () => ({
         user: null as User | null,
         notifications: [] as Notification[],
+        isLoadingNotifications: false,
+        notificationsError: null as string | null
     }),
 
     actions: {
@@ -226,7 +228,7 @@ export const useUserStore = defineStore('user', {
         },
         async fetchNotifications() {
             if (!this.user) return
-
+            this.isLoadingNotifications = true
             try {
                 const res = await api.get<ApiResponse<Notification[]>>(
                     '/notif/'
@@ -234,6 +236,30 @@ export const useUserStore = defineStore('user', {
                 this.notifications = res.data.data || []
             } catch (err: any) {
                 console.error('Failed to fetch notifications:', err)
+            } finally {
+                this.isLoadingNotifications = false
+            }
+            
+        },
+        async markNotificationAsRead(notificationId: number) {
+            try {
+              await api.patch(`/notif/${notificationId}/read/`)
+              const notification = this.notifications.find(n => n.id === notificationId)
+              if (notification) {
+                notification.is_read = true
+              }
+            } catch (error) {
+              console.error('Failed to mark notification as read', error)
+            }
+        },
+        
+        async respondToNotification(notificationId: number, accept: boolean) {
+            try {
+                await api.post(`/notif/${notificationId}/respond/`, { accept })
+                // Remove the notification from state
+                this.notifications = this.notifications.filter(n => n.id !== notificationId)
+            } catch (error) {
+                console.error('Failed to respond to notification', error)
             }
         },
     },

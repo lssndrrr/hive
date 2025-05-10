@@ -36,7 +36,7 @@
 
             <li class="flex flex-col justify-center space-y-4">
                 <button 
-                    @click="" 
+                    @click="isNotifOpen = !isNotifOpen"
                     aria-label="Notifications"
                     class="rounded-lg p-1.5 hover:bg-[#b07538]"
                 >
@@ -45,6 +45,7 @@
                         class="w-8 h-8 cursor-pointer"
                     />
                 </button>
+
                 <button @click="logout" aria-label="Logout">
                     <Icon
                         name="heroicons:arrow-left-on-rectangle"
@@ -54,70 +55,80 @@
             </li>
         </nav>
     </aside>
+    <Notifications
+        :isOpen="isNotifOpen"
+        @close="isNotifOpen = false"
+    />
 </template>
 
+<script setup lang="ts">
+    import { ref } from 'vue';
+
+    const userStore = useUserStore()
+    const toast = useToast()
+    
+    const isNotifOpen = ref(false)
+
+    const logout = async () => {
+        const res = await userStore.logout()
+
+        if (res.success) {
+            toast.add({
+                description: res.message,
+                class: '!bg-white !text-green-600',
+                color: 'success',
+            })
+        } else {
+            toast.add({
+                description: res.message,
+                class: '!bg-white !text-red-600',
+                color: 'error',
+            })
+        }
+    }
+</script>
+
 <style scoped>
-a {
-    /* Using 'a' as NuxtLink renders an anchor tag */
-    color: #ffffff; /* Default icon color (white) - inherited by SVG */
-    display: inline-flex; /* Use inline-flex for links within list items */
-    justify-content: center;
-    align-items: center;
-    padding: 8px; /* Add some padding for easier clicking */
-    border-radius: 8px; /* Rounded corners for hover/active state */
-    transition: background-color 0.3s ease; /* Smooth background transition on hover */
-}
+    a {
+        /* Using 'a' as NuxtLink renders an anchor tag */
+        color: #ffffff; /* Default icon color (white) - inherited by SVG */
+        display: inline-flex; /* Use inline-flex for links within list items */
+        justify-content: center;
+        align-items: center;
+        padding: 8px; /* Add some padding for easier clicking */
+        border-radius: 8px; /* Rounded corners for hover/active state */
+        transition: background-color 0.3s ease; /* Smooth background transition on hover */
+    }
 
-/* Style for the SVG icon rendered by the Icon component */
-/* Applied directly to the link (a) now, as Icon is the only child */
-a :deep(svg) {
-    /* Use :deep to target SVG inside Icon component */
-    width: 32px; /* 32px - Adjust size as needed */
-    height: 32px; /* 32px - Adjust size as needed */
-    color: currentColor; /* Inherit color from parent link (<a>) */
-    transition: color 0.3s ease; /* Add transition for smooth color change */
-}
+    /* Style for the SVG icon rendered by the Icon component */
+    /* Applied directly to the link (a) now, as Icon is the only child */
+    a :deep(svg) {
+        /* Use :deep to target SVG inside Icon component */
+        width: 32px; /* 32px - Adjust size as needed */
+        height: 32px; /* 32px - Adjust size as needed */
+        color: currentColor; /* Inherit color from parent link (<a>) */
+        transition: color 0.3s ease; /* Add transition for smooth color change */
+    }
 
-/* Hover state for links */
-a:hover {
-    background-color: rgba(255, 255, 255, 0.1); /* Subtle background on hover */
-}
+    /* Hover state for links */
+    a:hover {
+        background-color: rgba(255, 255, 255, 0.1); /* Subtle background on hover */
+    }
 
-a:hover :deep(svg) {
-    color: #fcefcb; /* Slightly lighter color on hover */
-}
+    a:hover :deep(svg) {
+        color: #fcefcb; /* Slightly lighter color on hover */
+    }
 
-/* Active link state */
-/* NuxtLink adds 'router-link-exact-active' for the precisely active route */
-/* a.router-link-exact-active { */
-/* Optional: Add background to active link */
-/* background-color: rgba(233, 163, 25, 0.2); */
-/* } */
+    /* Active link state */
+    /* NuxtLink adds 'router-link-exact-active' for the precisely active route */
+    /* a.router-link-exact-active { */
+    /* Optional: Add background to active link */
+    /* background-color: rgba(233, 163, 25, 0.2); */
+    /* } */
 
-a.router-link-exact-active :deep(svg) {
-    color: #e9a319; /* Active icon color */
-}
+    a.router-link-exact-active :deep(svg) {
+        color: #e9a319; /* Active icon color */
+    }
 </style>
 
-<script setup lang="ts">
-const userStore = useUserStore()
-const toast = useToast()
 
-const logout = async () => {
-    const res = await userStore.logout()
-
-    if (res.success) {
-        toast.add({
-            description: res.message,
-            class: '!bg-white !text-green-600',
-            color: 'success',
-        })
-    } else {
-        toast.add({
-            description: res.message,
-            class: '!bg-white !text-red-600',
-            color: 'error',
-        })
-    }
-}
-</script>

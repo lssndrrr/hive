@@ -80,13 +80,6 @@ import { useHiveStore } from '~/stores/hive';
 import type { Hive } from '~/interfaces/hive';
 import { useToast } from '#imports';
 
-// interface Hive {
-//     id: string | number
-//     name: string
-//     slug?: string; // For cleaner URL
-//     isActive?: boolean; // Example property
-// }
-
 const props = defineProps({
     isOpen: {
         type: Boolean,
