@@ -4,7 +4,7 @@
 
             <div
                 v-for="member in members"
-                :key="member.id"
+                :key="member.user.id"
                 class="bg-[#FCEFCB] text-[#A86523] rounded-lg p-3 hover:shadow-md transition-shadow duration-200 flex flex-col items-center"
                 @click="viewMember(member)"
             >
@@ -15,7 +15,7 @@
                         text-[#A86523]" 
                     />
                 </div>
-                <span class="text-sm font-medium truncate w-full text-center">{{ member.username }}</span>
+                <span class="text-sm font-medium truncate w-full text-center">{{ member.user.username }}</span>
             </div>
             
             <UModal title="Add Member" v-model:open="isAddMemberModalOpen" :ui="{ footer: 'justify-end' }" color="primary">

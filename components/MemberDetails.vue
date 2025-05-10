@@ -13,16 +13,15 @@
             <div class="flex flex-col items-center justify-center space-y-4 text-center">
                 <UAvatar
                     size="xl"
-                    :alt="member.username"
                     icon="i-heroicons-user"
                 />
-                <h3 class="text-xl font-bold text-[#A86523]">{{ member.username || 'Member Name' }}</h3>
+                <h3 class="text-xl font-bold text-[#A86523]">{{ member.user.username || 'Member Name' }}</h3>
             </div>
 
             <div class="space-y-1">
                 <p class="text-sm font-medium text-[#A86523]/80">Email</p>
                 <p class="text-sm text-[#A86523] break-words">
-                    {{ member.email || 'No email provided' }}
+                    {{ member.user.email || 'No email provided' }}
                 </p>
             </div>
 
@@ -46,7 +45,6 @@
                 Remove Member
             </UButton>
         </div>
-
     </aside>
 </template>
 
@@ -55,18 +53,32 @@ import { ref } from 'vue';
 import type { PropType } from 'vue';
 import { format } from 'date-fns';
 import type { HiveMember } from '~/interfaces/hive';
+import { useHiveStore } from '~/stores/hive';
 
 const props = defineProps({
   member: {
     type: Object as PropType<HiveMember>,
     required: true
-  }
+  },
+  hiveId: { // Add this prop to know which hive's members we're checking
+    type: Number,
+    required: true
+  },
 });
 
 const emit = defineEmits(['close']);
 
+const hiveStore = useHiveStore();
+const members = computed(() => {
+  if (!props.hiveId) {
+    console.error('hiveId is null or undefined');
+    return [];
+  }
+  return hiveStore.getMembers(props.hiveId);
+});
+
 function closePanel() {
-  emit('close');
+    emit('close');
 }
 
 const formatDate = (date: string | Date | undefined) => {
@@ -74,7 +86,6 @@ const formatDate = (date: string | Date | undefined) => {
     try {
         const dateObj = new Date(date);
         if (isNaN(dateObj.getTime())) { throw new Error('Invalid date value'); }
-        // Example format: January 15, 2024
         return format(dateObj, 'MMMM d, yyyy');
     } catch (e) {
         console.error("Error formatting date:", e);
