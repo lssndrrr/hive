@@ -317,5 +317,63 @@ export const useHiveStore = defineStore('hive', {
                 }
             }
         },
+        async removeMemberFromHive(
+            hiveId: number,
+            userId: number
+        ): Promise<ApiResponse<null> | undefined> {
+            try {
+                await api.delete(`/hive/${hiveId}/member/${userId}/`)
+
+                const hive = this.hives.find((h) => h.id === hiveId)
+                if (hive) {
+                    hive.members = hive.members.filter(
+                        (member) => member.user.id !== userId
+                    )
+                }
+
+                return {
+                    data: null,
+                    success: true,
+                    message: 'Member removed successfully!',
+                }
+            } catch (err: any) {
+                const apiError: ApiError = err.response?.data || {
+                    detail: 'Unknown error',
+                }
+                return {
+                    data: null,
+                    success: false,
+                    error: apiError,
+                    message: apiError.detail || 'Failed to remove member.',
+                }
+            }
+        },
+        async updateMemberRole(
+            hiveId: number,
+            userId: number,
+            newRole: 'QB' | 'BK' | 'WORKER_BEE'
+        ) {
+            try {
+                console.log('Sending PATCH request...')
+                const response = await api.patch(
+                    `/hive/${hiveId}/set_role/${userId}/`,
+                    { role: newRole }
+                )
+
+                console.log('Got response:', response)
+
+                // Update the local store
+                const hive = this.hives.find((h) => h.id === hiveId)
+                const member = hive?.members.find((m) => m.user.id === userId)
+                if (member) {
+                    member.role = newRole
+                }
+
+                return response
+            } catch (error) {
+                console.error('Error updating member role:', error)
+                throw error
+            }
+        },
     },
 })
