@@ -69,7 +69,7 @@ import { highlight } from '@nuxt/ui/runtime/utils/fuse.js';
     });
     
     const sortItems = ref(['Date'])
-    const filterItems = ref(['Small', 'Medium', 'Large'])
+    const filterItems = ref(['Low', 'Medium', 'High'])
 
     const emit = defineEmits(['view-task-details', 'edit-task', 'delete-task']);
 
