@@ -6,7 +6,7 @@ It is a group task management web app built with **Nuxt 3** and **Django**.\
 Early work in progress — MVP coming soon!\
 \
 This repository contains the frontend.
-You can find the backend [here](https://github.com/lssndrrr/hive-mind-backend).
+You can find the backend [here](https://github.com/lssndrrr/hive-backend).
 
 ### 📋 Features
 
